@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
-from database import Base
+from config.database import Base
 
 
 class Role(Base):
@@ -38,6 +38,7 @@ class User(Base):
     oid = Column(Integer, ForeignKey("organization.oid"))
     role = relationship("Role", back_populates="users")
     organization = relationship("Organization", back_populates="users")
+    model = relationship("Model", back_populates="user")
 
 
 class Model(Base):
@@ -47,6 +48,8 @@ class Model(Base):
     name = Column(String)
     source = Column(String)
     uploaded_at = Column(DateTime)
+    uid = Column(Integer, ForeignKey("users.uid"))
+    user = relationship("User", back_populates="model")
     benchmarking_details = relationship("BenchmarkingDetails", back_populates="model")
     optimization_details = relationship("OptimizationDetails", back_populates="model")
 
