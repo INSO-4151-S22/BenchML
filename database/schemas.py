@@ -1,4 +1,3 @@
-from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -46,11 +45,16 @@ class User(UserBase):
         orm_mode = True
 
 
-class Model(BaseModel):
-    mid: int
+class ModelCreate(BaseModel):
     name: str
     source: str
+
+
+class Model(ModelCreate):
+    mid: int
     uploaded_at: datetime
+    uid: int
+    user: User
 
     class Config:
         orm_mode = True
