@@ -1,0 +1,27 @@
+.NavbarItems {
+    background-color: #1E2019;
+    height: 50px;
+    display: flex;
+    flex-direction: row;
+
+    .account-icon svg  {
+        color: #FFFFFF;
+        margin-right: auto;
+    }
+
+    .Bench {
+        color: #DFEFCA;
+        justify-self:left;
+        margin-left: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .ML {
+        color: #AFC2D5; 
+        justify-self:left;
+        margin-top: 0.5rem;
+    }
+}
+   
+
+
