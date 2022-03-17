@@ -39,12 +39,34 @@ def get_model(db: Session, model_id: int):
 
 def create_model(db: Session, model: schemas.ModelCreate):
     # TODO: once auth is creates, uid should contain the actual user id
+    # TODO: implement status at the model level
+    # TODO: implement categories
+    # 1. create model
     current_datetime = get_datetime_now()
     db_model = models.Model(name=model.name, source=model.source,
                             uploaded_at=current_datetime, uid=1)
     db.add(db_model)
     db.commit()
     db.refresh(db_model)
+
+    # optimization = schemas.OptimizationDetailsCreate(information='r.information', detail='r.detail',
+    #                                                  mid=db_model.mid, cid=1)
+    # create_optimization_details(db, optimization)
+    # return db_model
+    # 2. call requested modules and store modules response
+    if 'optimizer' in model.modules:
+        print('Call Optimizer')
+        try:
+            res = optimize(model.source)
+            for r in res:
+                optimization = schemas.OptimizationDetailsCreate(information=r.information, detail=r.detail,
+                                                                 mid=db_model.mid, cid=1)
+                create_optimization_details(db, optimization)
+        except:
+            optimization = schemas.OptimizationDetailsCreate(information='Error',
+                                                             detail='There was an error optimizing your model. Please make sure to follow the guidelines.',
+                                                             mid=db_model.mid, cid=1)
+            create_optimization_details(db, optimization)
     return db_model
 
 
@@ -56,5 +78,25 @@ def get_benchmarking_details(db: Session):
     return db.query(models.BenchmarkingDetails).all()
 
 
+def create_benchmarking_details(db: Session, model: schemas.BenchmarkingDetailsCreate):
+    current_datetime = get_datetime_now()
+    db_benchmarking_details = models.BenchmarkingDetails(information=model.information, detail=model.detail,
+                                                         created_at=current_datetime, mid=model.mid, cid=model.cid)
+    db.add(db_benchmarking_details)
+    db.commit()
+    db.refresh(db_benchmarking_details)
+    return db_benchmarking_details
+
+
 def get_optimization_details(db: Session):
     return db.query(models.OptimizationDetails).all()
+
+
+def create_optimization_details(db: Session, model: schemas.OptimizationDetailsCreate):
+    current_datetime = get_datetime_now()
+    db_optimization_details = models.OptimizationDetails(information=model.information, detail=model.detail,
+                                                         created_at=current_datetime, mid=model.mid, cid=model.cid)
+    db.add(db_optimization_details)
+    db.commit()
+    db.refresh(db_optimization_details)
+    return db_optimization_details
