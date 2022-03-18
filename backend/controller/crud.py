@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from backend.database import schemas, models
 import pytz
 from datetime import datetime
+from backend.controller.modules.benchmarking.optimize import Optimize
 
 
 def get_datetime_now():
