@@ -12,30 +12,46 @@ from filelock import FileLock
 import numpy as np
 import os
 from ray.tune.schedulers import ASHAScheduler
+import requests
+import json
+
 class Optimize:
 
     def __init__(self):
         pass
 
     def create_model_from_args(self, config):
-        # Model type for now only supports keras and pytorch
+        """Based on the model type in config, create a model for use with ray tune."""
         if config['model_type'] == 'keras':
-            return self.create_model_keras()
+            return self.create_model_keras(config)
         elif config['model_type'] == 'pytorch':
             return self.create_model_pytorch(config)
         else: 
             return None
 
     def create_model_keras(self, config):
-        '''
-        Creates a keras model based on given structure with the usage of config values in hyperparameters.
-        '''
+        """Creates a keras model based on given structure with the usage of config values in hyperparameters.
+
+           TODO!!
+        """
+        # TODO
         return None
     
     def create_model_pytorch(self, config):
-        '''
-        Creates a pytorch model based on given structure with the usage of config values in hyperparameters.
-        '''
+        """Creates a pytorch model based on given structure with the usage of config values in hyperparameters.
+
+           Takes in a model configuration and creates a Net object that contains the nn.Module objects to run a 
+           Pytorch neural network. 
+
+           Args:
+                config: configuration values that contain model architecture.
+
+            Returns:
+                Pytorch Neural Network with provided configuration architecture.
+
+            Raises:
+                ArgumentTypeError: An invalid pytorch layer was found in config.
+        """
         class Reshape(nn.Module):
             '''
             Reshape layer to be used for replacing x.view and add it as a ModuleList.
@@ -115,6 +131,13 @@ class Optimize:
         return Net(config["layers"], config)
 
     def train_cifar(self, config):
+        '''
+        Creates a model and trains it for each iteration in `tune.run`. 
+        Reports back to the hyperparameter optimizer the results from each iteration.
+
+        Args:
+            config: A JSON object containing the model arguments.
+        '''
         net = Optimize.create_model_from_args(self, config)
         device = "cpu"
         if torch.cuda.is_available():
@@ -196,6 +219,12 @@ class Optimize:
         print("Training completed for model")
 
     def load_data(self, data_dir="./data"):
+        """Loads cifar-10 dataset and divides them into train and test sets.
+        
+            Returns:
+                Train and test set for use with pytorch model.
+        """
+
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -213,8 +242,20 @@ class Optimize:
 
         return trainset, testset
 
-    def optimize(self):
-        config = self.get_model_config()
+    def run(self, url):
+        """Run optimizer.
+
+            Obtains configuration for model from user input url. Runs the Hyperparameter
+            optimizer `tune.run` with the training function for the model_type to obtain
+            the best trial.
+
+            Args: 
+                url: User-input for config.json used in model creation. 
+            
+            Returns:
+                A JSON object with the best trial architecture and metrics. 
+        """
+        config = self.get_model_config(url)
         scheduler = ASHAScheduler(
                 max_t=10,
                 grace_period=1,
@@ -238,29 +279,50 @@ class Optimize:
         print("Best trial final validation accuracy: {}".format(
             best_trial.last_result["accuracy"]))
 
-    def get_model_config(self):
-        config = {
-            'model_type': 'pytorch',
-            'layers' : [
-                ["Conv2d", 3, 6, 5],
-                ["ReLU"],
-                ["MaxPool2d", 2, 2],
-                ["Conv2d", 6, 16, 5],
-                ["ReLU"],
-                ["MaxPool2d", 2, 2],
-                ["Reshape", -1, 16*5*5],
-                ["Linear", 16*5*5, "l1"],
-                ["ReLU"],
-                ["Linear", "l1", 84],
-                ["ReLU"],
-                ["Linear", 84, 10]
-            ],
-            "l1" : tune.sample_from(lambda _: 2 ** np.random.randint(2, 9)),
-            "lr": tune.loguniform(1e-4, 1e-1),
-            "batch_size": tune.choice([2, 4, 8, 16])
-        }
+    def get_model_config(self, url):
+        """Gets model configuration from user-input url.
+        
+            Requests the json file from the url and parses it to convert it into a programmable json.
+            This json is then used for model creation.
 
-        return config
+            Args:
+                url: User-input for config.json used in model creation.
+
+            Returns:
+                Dictionary object that contains the configuration of the model to be created.
+        """
+        config = json.loads(requests.get(url).text)
+        parsed_config = {}
+
+        for k in config.keys():
+            if k == "layers":
+                parsed_config[k] = []
+                for layer in config[k]:
+                    l = []
+                    for param in layer:
+                        if(isinstance(param, str)):
+                            try:
+                                l.append(int(param))
+                            except ValueError:
+                                l.append(param)
+                    parsed_config[k].append(l)
+            else:
+                parsed_config[k] = config[k]
+        
+        learning_rate = tune.loguniform(1e-4, 1e-1)
+        batch_size = tune.choice([2, 4, 8, 16])
+
+        for k in parsed_config.keys():
+            if k == 'model_type' or k == 'layers':
+                pass
+            elif k == 'lr' and parsed_config[k] and len(parsed_config[k]) == 0:
+                parsed_config[k] = learning_rate
+            elif k == 'batch_size' and parsed_config[k] and len(parsed_config[k]) == 0:
+                parsed_config[k] = batch_size
+            else:
+                parsed_config[k] = tune.sample_from(lambda _: 2 ** np.random.randint(2, 9))
+                
+        return parsed_config
 
 
     
