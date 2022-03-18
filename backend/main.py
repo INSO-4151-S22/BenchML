@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-import crud, schemas
-from database import SessionLocal
+from backend.controller import crud
+from backend.database import schemas
+from backend.config.database import SessionLocal
 
 app = FastAPI()
 
@@ -17,12 +18,7 @@ def get_db():
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
-
-
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+    return {"message": "Welcome to BenchML"}
 
 
 @app.get("/users/", response_model=List[schemas.User])
@@ -47,6 +43,20 @@ def read_organizations(db: Session = Depends(get_db)):
 def read_models(db: Session = Depends(get_db)):
     models = crud.get_models(db)
     return models
+
+
+@app.get("/models/{model_id}", response_model=schemas.Model)
+async def read_model(model_id: int, db: Session = Depends(get_db)):
+    model = crud.get_model(db, model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail=f"Model item with id {model_id} not found")
+    return model
+
+
+@app.post("/models/", response_model=schemas.Model)
+def create_model(model: schemas.ModelCreate, db: Session = Depends(get_db)):
+    model_insert = crud.create_model(db, model)
+    return model_insert
 
 
 @app.get("/categories/", response_model=List[schemas.Category])
