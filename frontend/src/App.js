@@ -3,23 +3,24 @@ import './App.css';
 import React, { useEffect, useState } from "react";
 
 function App() {
-  const [message, setMessage] = useState(""); //dummy name
-  const getMessage = async () => {
-    const requestOptions = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      }
-    };
-    const response = await fetch("/api", requestOptions);
-    const data = response.json();
+  // const [message, setMessage] = useState(""); //dummy name
+  // const getMessage = async () => {
+  //   const requestOptions = {
+  //     method: "GET",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     }
 
-    console.log(data);
-  };
+  //   };
+  //   const response = await fetch("/", requestOptions);
+  //   const data = response.json();
 
-  useEffect(() => {
-    getMessage();
-  }, []);
+  //   console.log(data);
+  // };
+
+  // useEffect(() => {
+  //   getMessage();
+  // }, []);
   return (
     <div className="App">
       <header className="App-header">
