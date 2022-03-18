@@ -2,25 +2,34 @@
     background-color: #1E2019;
     height: 50px;
     display: flex;
+    justify-content: flex-start;
     flex-direction: row;
+
+    .account-icon {
+        align-self: flex-end;
+        margin-left: auto;
+    }
 
     .account-icon svg  {
         color: #FFFFFF;
-        margin-right: auto;
+        margin-left: auto;
     }
 
     .Bench {
         color: #DFEFCA;
-        justify-self:left;
         margin-left: 1rem;
         margin-top: 0.5rem;
+  
     }
     
     .ML {
         color: #AFC2D5; 
-        justify-self:left;
         margin-top: 0.5rem;
+      
+        
     }
+   
+   
 }
    
 
