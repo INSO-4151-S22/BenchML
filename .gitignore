@@ -15,6 +15,7 @@ lib/
 
 frontend/node_modules/
 frontend/package-lock.json
+__pycache__/
 .expo/*
 npm-debug.*
 *.jks
