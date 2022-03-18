@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Literal, Set
 from pydantic import BaseModel
 
 
@@ -45,12 +46,16 @@ class User(UserBase):
         orm_mode = True
 
 
-class ModelCreate(BaseModel):
+class ModelBase(BaseModel):
     name: str
     source: str
 
 
-class Model(ModelCreate):
+class ModelCreate(ModelBase):
+    modules: Set[Literal["optimizer"]]
+
+
+class Model(ModelBase):
     mid: int
     uploaded_at: datetime
     uid: int
@@ -70,10 +75,15 @@ class Category(BaseModel):
         orm_mode = True
 
 
-class BenchmarkingDetails(BaseModel):
-    bdid: int
+class BenchmarkingDetailsCreate(BaseModel):
     information: str
     detail: str
+    mid: int
+    cid: int
+
+
+class BenchmarkingDetails(BenchmarkingDetailsCreate):
+    bdid: int
     created_at: datetime
     model: Model
     category: Category
@@ -82,10 +92,15 @@ class BenchmarkingDetails(BaseModel):
         orm_mode = True
 
 
-class OptimizationDetails(BaseModel):
-    odid: int
+class OptimizationDetailsCreate(BaseModel):
     information: str
     detail: str
+    mid: int
+    cid: int
+
+
+class OptimizationDetails(OptimizationDetailsCreate):
+    odid: int
     created_at: datetime
     model: Model
     category: Category
