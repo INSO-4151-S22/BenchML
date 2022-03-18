@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
-from config.database import Base
+from backend.config.database import Base
 
 
 class Role(Base):

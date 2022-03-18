@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database import models, schemas
+from backend.database import schemas, models
 import pytz
 from datetime import datetime
 
@@ -49,15 +49,10 @@ def create_model(db: Session, model: schemas.ModelCreate):
     db.commit()
     db.refresh(db_model)
 
-    # optimization = schemas.OptimizationDetailsCreate(information='r.information', detail='r.detail',
-    #                                                  mid=db_model.mid, cid=1)
-    # create_optimization_details(db, optimization)
-    # return db_model
-    # 2. call requested modules and store modules response
     if 'optimizer' in model.modules:
         print('Call Optimizer')
         try:
-            res = optimize(model.source)
+            res = Optimize().run(model.source)
             for r in res:
                 optimization = schemas.OptimizationDetailsCreate(information=r.information, detail=r.detail,
                                                                  mid=db_model.mid, cid=1)
