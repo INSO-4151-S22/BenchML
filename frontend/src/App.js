@@ -1,44 +1,15 @@
-import logo from './logo.svg';
-import './App.css';
-import React, { useEffect, useState } from "react";
+import React from 'react';
+import Navbar from "./Components/Navbar/Navbar";
+import { BasicTable } from "./Components/MyModelsTable";
+import './css/App.min.css';
 
 function App() {
-  // const [message, setMessage] = useState(""); //dummy name
-  // const getMessage = async () => {
-  //   const requestOptions = {
-  //     method: "GET",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     }
-
-  //   };
-  //   const response = await fetch("/", requestOptions);
-  //   const data = response.json();
-
-  //   console.log(data);
-  // };
-
-  // useEffect(() => {
-  //   getMessage();
-  // }, []);
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Navbar />
+      <h1>My Models</h1>
+      <BasicTable />
     </div>
-    
   );
 }
 

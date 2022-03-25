@@ -1,0 +1,36 @@
+.NavbarItems {
+    background-color: #1E2019;
+    height: 50px;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+
+    .account-icon {
+        align-self: flex-end;
+        margin-left: auto;
+    }
+
+    .account-icon svg  {
+        color: #FFFFFF;
+        margin-left: auto;
+    }
+
+    .Bench {
+        color: #DFEFCA;
+        margin-left: 1rem;
+        margin-top: 0.5rem;
+  
+    }
+    
+    .ML {
+        color: #AFC2D5; 
+        margin-top: 0.5rem;
+      
+        
+    }
+   
+   
+}
+   
+
+

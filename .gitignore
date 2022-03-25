@@ -1,5 +1,14 @@
-.idea/
+.env
+venv
+# binaries
+bin/
+dist/
+lib/
 
+
+# editors
+*.swp
+.idea/
 .vs/
 .vscode/
 .DS_Store
@@ -16,4 +25,3 @@ npm-debug.*
 *.mobileprovision
 .orig.
 web-build/
-
