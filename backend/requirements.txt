@@ -104,3 +104,6 @@ websockets==10.2
 widgetsnbextension==3.6.0
 wrapt==1.14.0
 zipp==3.7.0
+celery==5.2.3
+flower==1.0.0
+rq==1.10.1

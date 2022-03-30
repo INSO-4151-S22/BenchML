@@ -86,6 +86,7 @@ create table Model
     name        varchar(100) not null,
     source      varchar(250) not null,
     uploaded_at timestamptz  not null,
+    status varchar(50) not null,
     uid         int          not null
         constraint uid
             references users
@@ -135,3 +136,20 @@ create table Benchmarking_Details
 
 create unique index benchmarking_details_bdid_uindex
     on Benchmarking_Details (bdid);
+
+
+create table Model_Task
+(
+    tid        varchar(155)
+        constraint model_task_pk
+            primary key,
+    type       varchar(20) not null,
+    queue      varchar(10) not null,
+    created_at timestamptz not null,
+    mid        int         not null
+        constraint mid
+            references Model
+);
+
+create unique index model_task_tid_uindex
+    on Model_Task (tid);

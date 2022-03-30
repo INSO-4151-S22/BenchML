@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from backend.database import schemas, models
 import pytz
 from datetime import datetime
-from backend.controller.modules.benchmarking.optimize import Optimize
+from backend.controller.tasks import optimize_model
 
 
 def get_datetime_now():
@@ -40,29 +40,31 @@ def get_model(db: Session, model_id: int):
 
 def create_model(db: Session, model: schemas.ModelCreate):
     # TODO: once auth is creates, uid should contain the actual user id
-    # TODO: implement status at the model level
     # TODO: implement categories
     # 1. create model
     current_datetime = get_datetime_now()
     db_model = models.Model(name=model.name, source=model.source,
-                            uploaded_at=current_datetime, uid=1)
+                            uploaded_at=current_datetime, status="CREATED", uid=1)
     db.add(db_model)
     db.commit()
     db.refresh(db_model)
 
     if 'optimizer' in model.modules:
-        print('Call Optimizer')
-        try:
-            res = Optimize().run(model.source)
-            for r in res:
-                optimization = schemas.OptimizationDetailsCreate(information=r.information, detail=r.detail,
-                                                                 mid=db_model.mid, cid=1)
-                create_optimization_details(db, optimization)
-        except:
-            optimization = schemas.OptimizationDetailsCreate(information='Error',
-                                                             detail='There was an error optimizing your model. Please make sure to follow the guidelines.',
-                                                             mid=db_model.mid, cid=1)
-            create_optimization_details(db, optimization)
+        om = optimize_model.delay(model.source)
+        model_task = schemas.ModelTaskCreate(tid=om.task_id, mid=db_model.mid, type="optimizer", queue="celery")
+        create_model_task(db, model_task)
+        # print('Call Optimizer')
+        # try:
+        #     res = Optimize().run(model.source)
+        #     for r in res:
+        #         optimization = schemas.OptimizationDetailsCreate(information=r.information, detail=r.detail,
+        #                                                          mid=db_model.mid, cid=1)
+        #         create_optimization_details(db, optimization)
+        # except:
+        #     optimization = schemas.OptimizationDetailsCreate(information='Error',
+        #                                                      detail='There was an error optimizing your model. Please make sure to follow the guidelines.',
+        #                                                      mid=db_model.mid, cid=1)
+        #     create_optimization_details(db, optimization)
     return db_model
 
 
@@ -96,3 +98,17 @@ def create_optimization_details(db: Session, model: schemas.OptimizationDetailsC
     db.commit()
     db.refresh(db_optimization_details)
     return db_optimization_details
+
+
+def get_celery_meta(db: Session):
+    return db.query(models.CeleryTaskMeta).all()
+
+
+def create_model_task(db: Session, model: schemas.ModelTaskCreate):
+    current_datetime = get_datetime_now()
+    db_model_task = models.ModelTask(tid=model.tid, mid=model.mid, type=model.type, queue=model.queue,
+                                     created_at=current_datetime)
+    db.add(db_model_task)
+    db.commit()
+    db.refresh(db_model_task)
+    return db_model_task

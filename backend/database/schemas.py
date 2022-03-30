@@ -60,6 +60,7 @@ class Model(ModelBase):
     uploaded_at: datetime
     uid: int
     user: User
+    status: str
 
     class Config:
         orm_mode = True
@@ -107,3 +108,18 @@ class OptimizationDetails(OptimizationDetailsCreate):
 
     class Config:
         orm_mode = True
+
+
+class ModelTaskCreate(BaseModel):
+    tid: str
+    mid: int
+    type: str
+    queue: str
+
+
+class ModelTask(ModelTaskCreate):
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
