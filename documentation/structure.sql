@@ -86,7 +86,6 @@ create table Model
     name        varchar(100) not null,
     source      varchar(250) not null,
     uploaded_at timestamptz  not null,
-    status varchar(50) not null,
     uid         int          not null
         constraint uid
             references users
@@ -103,7 +102,7 @@ create table Optimization_Details
         constraint optimization_details_pk
             primary key,
     information varchar(250) not null,
-    detail      varchar(250) not null,
+    detail      TEXT not null,
     created_at  timestamptz  not null,
     mid         int          not null
         constraint mid

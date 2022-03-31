@@ -49,7 +49,8 @@ def read_models(db: Session = Depends(get_db)):
 async def read_model(model_id: int, db: Session = Depends(get_db)):
     model = crud.get_model(db, model_id)
     if not model:
-        raise HTTPException(status_code=404, detail=f"Model item with id {model_id} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Model item with id {model_id} not found")
     return model
 
 
@@ -59,6 +60,11 @@ def create_model(model: schemas.ModelCreate, db: Session = Depends(get_db)):
     return model_insert
 
 
+@app.get("/models/{model_id}/status/", response_model=List[schemas.ModelStatus])
+async def read_model_status(model_id: int, db: Session = Depends(get_db)):
+    return crud.get_model_status(db, model_id)
+
+
 @app.get("/categories/", response_model=List[schemas.Category])
 def read_categories(db: Session = Depends(get_db)):
     categories = crud.get_categories(db)
@@ -66,12 +72,14 @@ def read_categories(db: Session = Depends(get_db)):
 
 
 @app.get("/benchmarking_details/", response_model=List[schemas.BenchmarkingDetails])
-def read_benchmarking_details(db: Session = Depends(get_db)):
-    benchmarking_details = crud.get_benchmarking_details(db)
+def read_benchmarking_details(model_id: int = None, db: Session = Depends(get_db)):
+    benchmarking_details = crud.get_benchmarking_details_by_model_id(
+        db, model_id) if model_id else crud.get_benchmarking_details(db)
     return benchmarking_details
 
 
 @app.get("/optimization_details/", response_model=List[schemas.OptimizationDetails])
-def read_optimization_details(db: Session = Depends(get_db)):
-    optimization_details = crud.get_optimization_details(db)
+def read_optimization_details(model_id: int = None, db: Session = Depends(get_db)):
+    optimization_details = crud.get_optimization_details_by_model_id(
+        db, model_id) if model_id else crud.get_optimization_details(db)
     return optimization_details

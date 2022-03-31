@@ -60,7 +60,6 @@ class Model(ModelBase):
     uploaded_at: datetime
     uid: int
     user: User
-    status: str
 
     class Config:
         orm_mode = True
@@ -122,4 +121,11 @@ class ModelTask(ModelTaskCreate):
 
     class Config:
         orm_mode = True
+
+
+class ModelStatus(BaseModel):
+    mid: int
+    type: str
+    status: str
+    created_at: datetime
 

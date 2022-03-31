@@ -3,6 +3,9 @@ from backend.database import schemas, models
 import pytz
 from datetime import datetime
 from backend.controller.tasks import optimize_model
+from sqlalchemy import inspect
+import pickle
+import json
 
 
 def get_datetime_now():
@@ -35,7 +38,21 @@ def get_models(db: Session):
 
 
 def get_model(db: Session, model_id: int):
-    return db.query(models.Model).filter(models.Model.mid == model_id).first()
+    db_model = db.query(models.Model).filter(
+        models.Model.mid == model_id).first()
+    verify_model_tasks(db, db_model)
+    return db_model
+
+
+def get_model_status(db: Session, model_id: int):
+    db_model = get_model(db, model_id)
+    if not db_model:
+        return db_model
+
+    db_model_status = db.query(models.ModelTask.mid, models.ModelTask.type, models.ModelTask.created_at, models.CeleryTaskMeta.status).filter(
+        models.ModelTask.tid == models.CeleryTaskMeta.task_id).filter(models.ModelTask.mid == model_id).all()
+
+    return db_model_status
 
 
 def create_model(db: Session, model: schemas.ModelCreate):
@@ -44,32 +61,25 @@ def create_model(db: Session, model: schemas.ModelCreate):
     # 1. create model
     current_datetime = get_datetime_now()
     db_model = models.Model(name=model.name, source=model.source,
-                            uploaded_at=current_datetime, status="CREATED", uid=1)
+                            uploaded_at=current_datetime, uid=1)
     db.add(db_model)
     db.commit()
     db.refresh(db_model)
 
     if 'optimizer' in model.modules:
         om = optimize_model.delay(model.source)
-        model_task = schemas.ModelTaskCreate(tid=om.task_id, mid=db_model.mid, type="optimizer", queue="celery")
+        model_task = schemas.ModelTaskCreate(
+            tid=om.task_id, mid=db_model.mid, type="optimizer", queue="celery")
         create_model_task(db, model_task)
-        # print('Call Optimizer')
-        # try:
-        #     res = Optimize().run(model.source)
-        #     for r in res:
-        #         optimization = schemas.OptimizationDetailsCreate(information=r.information, detail=r.detail,
-        #                                                          mid=db_model.mid, cid=1)
-        #         create_optimization_details(db, optimization)
-        # except:
-        #     optimization = schemas.OptimizationDetailsCreate(information='Error',
-        #                                                      detail='There was an error optimizing your model. Please make sure to follow the guidelines.',
-        #                                                      mid=db_model.mid, cid=1)
-        #     create_optimization_details(db, optimization)
     return db_model
 
 
 def get_categories(db: Session):
     return db.query(models.Category).all()
+
+
+def get_benchmarking_details_by_model_id(db: Session, model_id: int):
+    return db.query(models.BenchmarkingDetails).filter(models.BenchmarkingDetails.mid == model_id).all()
 
 
 def get_benchmarking_details(db: Session):
@@ -86,6 +96,10 @@ def create_benchmarking_details(db: Session, model: schemas.BenchmarkingDetailsC
     return db_benchmarking_details
 
 
+def get_optimization_details_by_model_id(db: Session, model_id: int):
+    return db.query(models.OptimizationDetails).filter(models.OptimizationDetails.mid == model_id).all()
+
+
 def get_optimization_details(db: Session):
     return db.query(models.OptimizationDetails).all()
 
@@ -100,8 +114,19 @@ def create_optimization_details(db: Session, model: schemas.OptimizationDetailsC
     return db_optimization_details
 
 
-def get_celery_meta(db: Session):
+def get_celery_taskmeta_by_task_id(db: Session, celery_taskmeta_task_id: int):
+    return db.query(models.CeleryTaskMeta).filter(models.CeleryTaskMeta.task_id == celery_taskmeta_task_id).first()
+
+
+def get_celery_taskmetas(db: Session):
     return db.query(models.CeleryTaskMeta).all()
+
+
+def get_model_tasks_by_model_id(db: Session, model_id: int, type=None):
+    if type in ['optimizer']:
+        return db.query(models.ModelTask).filter(models.ModelTask.mid == model_id, models.ModelTask.type == type).first()
+    else:
+        return db.query(models.ModelTask).filter(models.ModelTask.mid == model_id).all()
 
 
 def create_model_task(db: Session, model: schemas.ModelTaskCreate):
@@ -112,3 +137,34 @@ def create_model_task(db: Session, model: schemas.ModelTaskCreate):
     db.commit()
     db.refresh(db_model_task)
     return db_model_task
+
+
+#
+# -- Helper Funcions --
+#
+def object_as_dict(obj):
+    return {c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs}
+
+
+# Check if the celery task has finished or failed and fetch that data (if not done previously)
+def verify_model_tasks(db: Session, model: schemas.Model):
+    # Optimization
+    od = get_optimization_details_by_model_id(db, model.mid)
+    if not od:
+        model_tasks = get_model_tasks_by_model_id(db, model.mid, 'optimizer')
+        taskmeta = get_celery_taskmeta_by_task_id(db, model_tasks.tid)
+
+        if taskmeta.status == 'FAILURE':
+            optimization = schemas.OptimizationDetailsCreate(information='Error',
+                                                             detail='There was an error optimizing your model. Please make sure to follow the guidelines.',
+                                                             mid=model.mid, cid=1)
+            create_optimization_details(db, optimization)
+
+        elif taskmeta.status == 'SUCCESS':
+            data = object_as_dict(taskmeta)
+            res = pickle.loads(data['result'])
+            for k in res:
+                optimization = schemas.OptimizationDetailsCreate(information=str(k), detail=json.dumps(res[k]),
+                                                                 mid=model.mid, cid=1)
+                create_optimization_details(db, optimization)

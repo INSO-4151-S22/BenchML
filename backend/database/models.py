@@ -50,7 +50,6 @@ class Model(Base):
     source = Column(String)
     uploaded_at = Column(DateTime)
     uid = Column(Integer, ForeignKey("users.uid"))
-    status = Column(String)
     user = relationship("User", back_populates="model")
     benchmarking_details = relationship("BenchmarkingDetails", back_populates="model")
     optimization_details = relationship("OptimizationDetails", back_populates="model")
