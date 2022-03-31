@@ -1,4 +1,4 @@
-# BenchML API
+# BenchML
 ## Team Members
 Fernando Davis
 - fernando.davis@upr.edu
@@ -15,10 +15,6 @@ Enrique Viera
 
 ## Project page
 `https://inso-4151-s22.github.io/BenchML/`
-
-
-## Initial Setup
-Go to the file **database.py** and include the database url in the following variable **SQLALCHEMY_DATABASE_URL**. It should be in the following format: *`"postgresql://<user>:<password>@<server url>:<port>/<database>"`*
 
 
 ## Documentation

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from backend.config.database import Base
+from sqlalchemy.types import LargeBinary
 
 
 class Role(Base):
@@ -52,6 +53,7 @@ class Model(Base):
     user = relationship("User", back_populates="model")
     benchmarking_details = relationship("BenchmarkingDetails", back_populates="model")
     optimization_details = relationship("OptimizationDetails", back_populates="model")
+    model_task = relationship("ModelTask", back_populates="model")
 
 
 class Category(Base):
@@ -89,3 +91,23 @@ class OptimizationDetails(Base):
     cid = Column(Integer, ForeignKey("category.cid"))
     model = relationship("Model", back_populates="optimization_details")
     category = relationship("Category", back_populates="optimization_details")
+
+
+class CeleryTaskMeta(Base):
+    __tablename__ = "celery_taskmeta"
+
+    task_id = Column(String, primary_key=True)
+    status = Column(String)
+    result = Column(LargeBinary)
+
+
+class ModelTask(Base):
+    __tablename__ = "model_task"
+
+    tid = Column(String, primary_key=True, index=True)
+    type = Column(String)
+    queue = Column(String)
+    created_at = Column(DateTime)
+    mid = Column(Integer, ForeignKey("model.mid"))
+    model = relationship("Model", back_populates="model_task")
+    

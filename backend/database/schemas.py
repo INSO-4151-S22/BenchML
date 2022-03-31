@@ -107,3 +107,25 @@ class OptimizationDetails(OptimizationDetailsCreate):
 
     class Config:
         orm_mode = True
+
+
+class ModelTaskCreate(BaseModel):
+    tid: str
+    mid: int
+    type: str
+    queue: str
+
+
+class ModelTask(ModelTaskCreate):
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class ModelStatus(BaseModel):
+    mid: int
+    type: str
+    status: str
+    created_at: datetime
+
