@@ -27,12 +27,6 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return users
 
 
-@app.get("/roles/", response_model=List[schemas.Role])
-def read_roles(db: Session = Depends(get_db)):
-    roles = crud.get_roles(db)
-    return roles
-
-
 @app.get("/organizations/", response_model=List[schemas.Organization])
 def read_organizations(db: Session = Depends(get_db)):
     organizations = crud.get_organizations(db)
@@ -62,24 +56,17 @@ def create_model(model: schemas.ModelCreate, db: Session = Depends(get_db)):
 
 @app.get("/models/{model_id}/status/", response_model=List[schemas.ModelStatus])
 async def read_model_status(model_id: int, db: Session = Depends(get_db)):
-    return crud.get_model_status(db, model_id)
+    model_status = crud.get_model_status_by_model_id(db, model_id)
+    if not model_status:
+        raise HTTPException(
+            status_code=404, detail=f"No Model Status for Model item with id {model_id} not found")
+    return model_status
 
 
-@app.get("/categories/", response_model=List[schemas.Category])
-def read_categories(db: Session = Depends(get_db)):
-    categories = crud.get_categories(db)
-    return categories
-
-
-@app.get("/benchmarking_details/", response_model=List[schemas.BenchmarkingDetails])
-def read_benchmarking_details(model_id: int = None, db: Session = Depends(get_db)):
-    benchmarking_details = crud.get_benchmarking_details_by_model_id(
-        db, model_id) if model_id else crud.get_benchmarking_details(db)
-    return benchmarking_details
-
-
-@app.get("/optimization_details/", response_model=List[schemas.OptimizationDetails])
-def read_optimization_details(model_id: int = None, db: Session = Depends(get_db)):
-    optimization_details = crud.get_optimization_details_by_model_id(
-        db, model_id) if model_id else crud.get_optimization_details(db)
-    return optimization_details
+@app.get("/models/{model_id}/details/", response_model=List[schemas.ModelResults])
+async def read_model_details(model_id: int, db: Session = Depends(get_db)):
+    model_details = crud.get_model_results_by_model_id(db, model_id)
+    if not model_details:
+        raise HTTPException(
+            status_code=404, detail=f"Model Results for Model item with id {model_id} not found")
+    return model_details

@@ -25,8 +25,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def get_roles(db: Session):
-    return db.query(models.Role).all()
+
 
 
 def get_organizations(db: Session):
@@ -40,11 +39,12 @@ def get_models(db: Session):
 def get_model(db: Session, model_id: int):
     db_model = db.query(models.Model).filter(
         models.Model.mid == model_id).first()
+    if db_model:
     verify_model_tasks(db, db_model)
     return db_model
 
 
-def get_model_status(db: Session, model_id: int):
+def get_model_status_by_model_id(db: Session, model_id: int):
     db_model = get_model(db, model_id)
     if not db_model:
         return db_model
@@ -57,7 +57,6 @@ def get_model_status(db: Session, model_id: int):
 
 def create_model(db: Session, model: schemas.ModelCreate):
     # TODO: once auth is creates, uid should contain the actual user id
-    # TODO: implement categories
     # 1. create model
     current_datetime = get_datetime_now()
     db_model = models.Model(name=model.name, source=model.source,
@@ -74,44 +73,21 @@ def create_model(db: Session, model: schemas.ModelCreate):
     return db_model
 
 
-def get_categories(db: Session):
-    return db.query(models.Category).all()
+def get_model_results_by_model_id(db: Session, model_id: int, **kwargs):
+    if 'type' in kwargs:
+        return db.query(models.ModelResults).filter(models.ModelResults.mid == model_id).filter(models.ModelResults.type == kwargs.get('type')).all()
+
+    return db.query(models.ModelResults).filter(models.ModelResults.mid == model_id).all()
 
 
-def get_benchmarking_details_by_model_id(db: Session, model_id: int):
-    return db.query(models.BenchmarkingDetails).filter(models.BenchmarkingDetails.mid == model_id).all()
-
-
-def get_benchmarking_details(db: Session):
-    return db.query(models.BenchmarkingDetails).all()
-
-
-def create_benchmarking_details(db: Session, model: schemas.BenchmarkingDetailsCreate):
+def create_model_results(db: Session, model: schemas.ModelResultsCreate):
     current_datetime = get_datetime_now()
-    db_benchmarking_details = models.BenchmarkingDetails(information=model.information, detail=model.detail,
-                                                         created_at=current_datetime, mid=model.mid, cid=model.cid)
-    db.add(db_benchmarking_details)
+    db_model_results = models.ModelResults(information=model.information, detail=model.detail,
+                                           created_at=current_datetime, mid=model.mid, type=model.type)
+    db.add(db_model_results)
     db.commit()
-    db.refresh(db_benchmarking_details)
-    return db_benchmarking_details
-
-
-def get_optimization_details_by_model_id(db: Session, model_id: int):
-    return db.query(models.OptimizationDetails).filter(models.OptimizationDetails.mid == model_id).all()
-
-
-def get_optimization_details(db: Session):
-    return db.query(models.OptimizationDetails).all()
-
-
-def create_optimization_details(db: Session, model: schemas.OptimizationDetailsCreate):
-    current_datetime = get_datetime_now()
-    db_optimization_details = models.OptimizationDetails(information=model.information, detail=model.detail,
-                                                         created_at=current_datetime, mid=model.mid, cid=model.cid)
-    db.add(db_optimization_details)
-    db.commit()
-    db.refresh(db_optimization_details)
-    return db_optimization_details
+    db.refresh(db_model_results)
+    return db_model_results
 
 
 def get_celery_taskmeta_by_task_id(db: Session, celery_taskmeta_task_id: int):
@@ -150,21 +126,20 @@ def object_as_dict(obj):
 # Check if the celery task has finished or failed and fetch that data (if not done previously)
 def verify_model_tasks(db: Session, model: schemas.Model):
     # Optimization
-    od = get_optimization_details_by_model_id(db, model.mid)
+    od = get_model_results_by_model_id(db, model.mid, type='optimizer')
     if not od:
         model_tasks = get_model_tasks_by_model_id(db, model.mid, 'optimizer')
         taskmeta = get_celery_taskmeta_by_task_id(db, model_tasks.tid)
 
         if taskmeta.status == 'FAILURE':
-            optimization = schemas.OptimizationDetailsCreate(information='Error',
-                                                             detail='There was an error optimizing your model. Please make sure to follow the guidelines.',
-                                                             mid=model.mid, cid=1)
-            create_optimization_details(db, optimization)
+            optimization = schemas.ModelResultsCreate(
+                type='optimizer', information='Error', detail='There was an error optimizing your model. Please make sure to follow the guidelines.', mid=model.mid)
+            create_model_results(db, optimization)
 
         elif taskmeta.status == 'SUCCESS':
             data = object_as_dict(taskmeta)
             res = pickle.loads(data['result'])
             for k in res:
-                optimization = schemas.OptimizationDetailsCreate(information=str(k), detail=json.dumps(res[k]),
-                                                                 mid=model.mid, cid=1)
-                create_optimization_details(db, optimization)
+                optimization = schemas.ModelResultsCreate(type='optimizer', information=str(k), detail=json.dumps(res[k]),
+                                                          mid=model.mid)
+                create_model_results(db, optimization)
