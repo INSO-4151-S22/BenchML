@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from backend.controller import crud
-from backend.database import schemas
-from backend.config.database import SessionLocal
+from controller import crud
+from database import schemas
+from config.database import SessionLocal
+
 
 app = FastAPI()
 

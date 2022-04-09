@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
-from backend.config.database import Base
+from config.database import Base
 from sqlalchemy.types import LargeBinary
 
 

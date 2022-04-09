@@ -1,13 +1,5 @@
-from celery import Celery
-from backend.controller.modules.benchmarking.optimize import Optimize
-
-
-celery = Celery(
-    __name__,
-    broker="",
-    backend="",
-    worker_redirect_stdouts=False
-)
+from config import celery
+from controller.modules.benchmarking.optimize import Optimize
 
 
 @celery.task(track_started=True)

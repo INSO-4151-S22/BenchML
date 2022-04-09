@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
-from backend.database import schemas, models
+from database import schemas, models
 import pytz
 from datetime import datetime
-from backend.controller.tasks import optimize_model
+from controller.tasks import optimize_model
 from sqlalchemy import inspect
 import pickle
 import json
@@ -25,9 +25,6 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-
-
-
 def get_organizations(db: Session):
     return db.query(models.Organization).all()
 
@@ -40,7 +37,7 @@ def get_model(db: Session, model_id: int):
     db_model = db.query(models.Model).filter(
         models.Model.mid == model_id).first()
     if db_model:
-    verify_model_tasks(db, db_model)
+        verify_model_tasks(db, db_model)
     return db_model
 
 
