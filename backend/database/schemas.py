@@ -1,54 +1,55 @@
 from datetime import datetime
 from typing import List, Literal, Set
 from pydantic import BaseModel
+from typing import Optional
 
 
-class UserBase(BaseModel):
-    uid: int
+class OrganizationBase(BaseModel):
+    oid: int
+    name: str
+    owner_id: int
+    owner: Optional['UserBaseRef']
+
+    class Config:
+        orm_mode = True
+
+
+class Organization(OrganizationBase):
+    created_at: datetime
+    updated_at: datetime
+
+
+class UserCreate(BaseModel):
     first_name: str
     last_name: str
     email: str
-    rid: int
-    oid: int
+    oid: Optional[int]
 
     class Config:
         orm_mode = True
 
 
-class Role(BaseModel):
-    rid: int
-    type: str
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
+class UserBaseRef(UserCreate):
+    uid: int
 
 
-class Organization(BaseModel):
-    oid: int
-    name: str
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
+class UserBase(UserBaseRef):
+    organization: Optional[OrganizationBase]
 
 
 class User(UserBase):
-    uid: int
     created_at: datetime
     updated_at: datetime
-    role: Role
-    organization: Organization
 
-    class Config:
-        orm_mode = True
+
+
+
 
 
 class ModelBase(BaseModel):
     name: str
     source: str
+    oid: Optional[int]
 
 
 class ModelCreate(ModelBase):
@@ -59,54 +60,28 @@ class Model(ModelBase):
     mid: int
     uploaded_at: datetime
     uid: int
-    user: User
+    oid: Optional[int]
+    user: UserBase
+    organization: Optional[OrganizationBase]
 
     class Config:
         orm_mode = True
 
 
-class Category(BaseModel):
-    cid: int
-    name: str
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
-
-
-class BenchmarkingDetailsCreate(BaseModel):
+class ModelResultsCreate(BaseModel):
     information: str
     detail: str
     mid: int
-    cid: int
-
-
-class BenchmarkingDetails(BenchmarkingDetailsCreate):
-    bdid: int
-    created_at: datetime
-    model: Model
-    category: Category
+    type: str
 
     class Config:
         orm_mode = True
 
 
-class OptimizationDetailsCreate(BaseModel):
-    information: str
-    detail: str
-    mid: int
-    cid: int
-
-
-class OptimizationDetails(OptimizationDetailsCreate):
-    odid: int
+class ModelResults(ModelResultsCreate):
+    rid: int
     created_at: datetime
     model: Model
-    category: Category
-
-    class Config:
-        orm_mode = True
 
 
 class ModelTaskCreate(BaseModel):
@@ -129,3 +104,6 @@ class ModelStatus(BaseModel):
     status: str
     created_at: datetime
 
+
+OrganizationBase.update_forward_refs()
+Organization.update_forward_refs()
