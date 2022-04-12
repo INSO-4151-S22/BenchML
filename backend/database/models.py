@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from config.database import Base
 from sqlalchemy.types import LargeBinary
@@ -15,9 +15,9 @@ class Organization(Base):
 
     owner = relationship("User", back_populates="organization_managed",
                          primaryjoin="Organization.owner_id==User.uid")
-    users = relationship(
-        "User", foreign_keys='[User.oid]', back_populates="organization")
     models = relationship("Model", back_populates="organization")
+    organization_invitations = relationship("UserOrganizations", back_populates="organization",
+                                            primaryjoin="UserOrganizations.oid==Organization.oid")
 
 
 class User(Base):
@@ -29,12 +29,9 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
-    oid = Column(Integer, ForeignKey("organization.oid"))
 
     organization_managed = relationship(
         Organization, back_populates="owner", primaryjoin="Organization.owner_id==User.uid")
-    organization = relationship(
-        "Organization", foreign_keys='[User.oid]', back_populates="users")
     model = relationship("Model", back_populates="user")
 
 
@@ -83,3 +80,17 @@ class ModelTask(Base):
     created_at = Column(DateTime)
     mid = Column(Integer, ForeignKey("model.mid"))
     model = relationship("Model", back_populates="model_task")
+
+
+class UserOrganizations(Base):
+    __tablename__ = "user_organizations"
+
+    uoid = Column(Integer, primary_key=True, index=True)
+    email = Column(String)
+    accepted = Column(Boolean, default=False)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
+    oid = Column(Integer, ForeignKey("organization.oid"))
+    organization = relationship("Organization", back_populates="organization_invitations",
+                                primaryjoin="UserOrganizations.oid==Organization.oid")
+ 

@@ -5,6 +5,10 @@ class Settings(BaseSettings):
     sqlalchemy_database_url: str 
     celery_broker_url: str
     celery_backend_url: str
+    auth0_domain: str
+    auth0_api_audience: str
+    auth0_algorithms: str
+    auth0_issuer: str
 
     class Config:
         env_file = ".env"

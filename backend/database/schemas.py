@@ -1,14 +1,23 @@
 from datetime import datetime
 from typing import List, Literal, Set
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
+
+
+class OrganizationCreate(BaseModel):
+    name: str
+    invitees: Set[EmailStr]
+
+    class Config:
+        orm_mode = True
 
 
 class OrganizationBase(BaseModel):
     oid: int
-    name: str
     owner_id: int
-    owner: Optional['UserBaseRef']
+    name: str
+    owner: Optional['UserBase']
+    organization_invitations: Optional[List['UserOrganization']]
 
     class Config:
         orm_mode = True
@@ -23,27 +32,18 @@ class UserCreate(BaseModel):
     first_name: str
     last_name: str
     email: str
-    oid: Optional[int]
 
     class Config:
         orm_mode = True
 
 
-class UserBaseRef(UserCreate):
+class UserBase(UserCreate):
     uid: int
-
-
-class UserBase(UserBaseRef):
-    organization: Optional[OrganizationBase]
 
 
 class User(UserBase):
     created_at: datetime
     updated_at: datetime
-
-
-
-
 
 
 class ModelBase(BaseModel):
@@ -54,6 +54,7 @@ class ModelBase(BaseModel):
 
 class ModelCreate(ModelBase):
     modules: Set[Literal["optimizer"]]
+    organization_id: int
 
 
 class Model(ModelBase):
@@ -103,6 +104,21 @@ class ModelStatus(BaseModel):
     type: str
     status: str
     created_at: datetime
+
+
+class UserOrganizationCreate(BaseModel):
+    email: str
+    oid: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserOrganization(UserOrganizationCreate):
+    uoid: int
+    accepted: bool
+    created_at: datetime
+    updated_at: datetime
 
 
 OrganizationBase.update_forward_refs()

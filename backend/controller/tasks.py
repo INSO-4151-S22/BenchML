@@ -1,4 +1,4 @@
-from config import celery
+from config.celery import celery
 from controller.modules.benchmarking.optimize import Optimize
 
 

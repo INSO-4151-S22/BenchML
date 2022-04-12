@@ -28,10 +28,7 @@ create table Users
     last_name  varchar(50)  not null,
     email      varchar(250) not null,
     created_at timestamptz  not null,
-    updated_at timestamptz  not null,
-    oid        int          
-        constraint oid
-            references organization
+    updated_at timestamptz  not null
 );
 
 create unique index user_email_uindex
@@ -97,3 +94,21 @@ create table Model_Task
 
 create unique index model_task_tid_uindex
     on Model_Task (tid);
+
+
+create table user_organizations
+(
+    uoid       serial
+        constraint user_organizations_pk
+            primary key,
+    oid        int                not null
+        constraint user_organizations_organization_oid_fk
+            references organization,
+    email      varchar(250)       not null,
+    accepted   bool default False not null,
+    created_at timestamptz        not null,
+    updated_at timestamptz        not null
+);
+
+create unique index user_organizations_uoid_uindex
+    on user_organizations (uoid);
