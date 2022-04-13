@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     auth0_api_audience: str
     auth0_algorithms: str
     auth0_issuer: str
+    timezone: str
 
     class Config:
         env_file = ".env"

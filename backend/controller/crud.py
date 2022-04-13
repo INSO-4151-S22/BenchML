@@ -6,11 +6,12 @@ from controller.tasks import optimize_model
 from sqlalchemy import inspect
 import pickle
 import json
+import config
 
 
 def get_datetime_now():
-    pr = pytz.timezone('America/Puerto_Rico')
-    return datetime.now(pr)
+    t_zone = pytz.timezone(config.get_settings().timezone)
+    return datetime.now(t_zone)
 
 
 def get_user_by_email(db: Session, email: str):
