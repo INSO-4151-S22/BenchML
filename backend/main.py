@@ -53,8 +53,8 @@ def update_organizations_invitations_status(invitation_id: int, db: Session = De
 
 
 @app.post("/organizations/", response_model=schemas.Organization)
-def create_organization(model: schemas.OrganizationCreate, db: Session = Depends(get_db), user: schemas.User = Depends(get_current_user)):
-    organization_insert = crud.create_organization(db, model, user)
+def create_organization(organization: schemas.OrganizationCreate, db: Session = Depends(get_db), user: schemas.User = Depends(get_current_user)):
+    organization_insert = crud.create_organization(db, organization, user)
     return organization_insert
 
 

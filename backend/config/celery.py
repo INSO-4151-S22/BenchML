@@ -6,5 +6,6 @@ celery = Celery(
     __name__,
     broker=config.get_settings().celery_broker_url,
     backend=config.get_settings().celery_backend_url,
-    worker_redirect_stdouts=False
+    worker_redirect_stdouts=False,
+    include=['controller.tasks']
 )

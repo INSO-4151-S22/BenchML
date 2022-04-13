@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Literal, Set
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, HttpUrl
 from typing import Optional
 
 
@@ -48,13 +48,12 @@ class User(UserBase):
 
 class ModelBase(BaseModel):
     name: str
-    source: str
+    source: HttpUrl
     oid: Optional[int]
 
 
 class ModelCreate(ModelBase):
     modules: Set[Literal["optimizer"]]
-    organization_id: int
 
 
 class Model(ModelBase):

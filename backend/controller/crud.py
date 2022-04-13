@@ -28,31 +28,30 @@ def create_user(db: Session, model: schemas.UserCreate):
     return db_user
 
 
-def __create_user_organizations(db: Session, model: schemas.UserOrganizationCreate, owner: bool = False):
+def __create_user_organizations(db: Session, user_organization: schemas.UserOrganizationCreate, owner: bool = False):
     current_datetime = get_datetime_now()
-    db_invitation = models.UserOrganizations(
-        email=model.email, oid=model.oid, updated_at=current_datetime, created_at=current_datetime, accepted=owner)
-    db.add(db_invitation)
+    db_user_organization = models.UserOrganizations(
+        email=user_organization.email, oid=user_organization.oid, updated_at=current_datetime, created_at=current_datetime, accepted=owner)
+    db.add(db_user_organization)
     db.commit()
-    db.refresh(db_invitation)
-    return db_invitation
+    db.refresh(db_user_organization)
+    return db_user_organization
 
 
 def get_organizations(db: Session, user: schemas.User):
-    return db.query(models.Organization, models.UserOrganizations).filter(models.UserOrganizations.oid == models.Organization.oid).filter(
-        models.UserOrganizations.email == user.email).filter(models.UserOrganizations.accepted == True).with_entities(models.Organization).all()
+    return db.query(models.Organization).join(models.UserOrganizations, models.UserOrganizations.oid == models.Organization.oid).filter(models.UserOrganizations.email == user.email).filter(models.UserOrganizations.accepted == True).with_entities(models.Organization).all()
 
 
 def get_organizations_by_id(db: Session, organization_id: int, user: schemas.User):
-    return db.query(models.Organization, models.UserOrganizations).filter(models.UserOrganizations.oid == models.Organization.oid).filter(models.UserOrganizations.email == user.email).filter(models.UserOrganizations.accepted == True).with_entities(models.Organization).filter(models.Organization.oid == organization_id).first()
+    return db.query(models.Organization).join(models.UserOrganizations, models.UserOrganizations.oid == models.Organization.oid).filter(models.UserOrganizations.email == user.email).filter(models.UserOrganizations.accepted == True).filter(models.Organization.oid == organization_id).with_entities(models.Organization).first()
 
 
 def get_user_organizations(db: Session, user: schemas.User):
-    return db.query(models.UserOrganizations).join(models.User, models.UserOrganizations.email == models.User.email).filter(models.User.uid == user.uid).all()
+    return db.query(models.UserOrganizations).filter(models.UserOrganizations.email == user.email).all()
 
 
 def get_user_organizations_by_id(db: Session, user: schemas.User, invitation_id: int):
-    return db.query(models.UserOrganizations).join(models.User, models.UserOrganizations.email == models.User.email).filter(models.User.uid == user.uid).filter(models.UserOrganizations.uoid == invitation_id).first()
+    return db.query(models.UserOrganizations).filter(models.UserOrganizations.email == user.email).filter(models.UserOrganizations.uoid == invitation_id).first()
 
 
 def set_user_organizations_accept(db: Session, user: schemas.User, invitation_id: int):
@@ -69,19 +68,24 @@ def set_user_organizations_accept(db: Session, user: schemas.User, invitation_id
     return invitation
 
 
-def create_organization(db: Session, model: schemas.OrganizationCreate, user: schemas.User):
+def create_organization(db: Session, organization: schemas.OrganizationCreate, user: schemas.User):
     current_datetime = get_datetime_now()
-    db_organization = models.Organization(name=model.name, owner_id=user.uid,
+    db_organization = models.Organization(name=organization.name, owner_id=user.uid,
                                           updated_at=current_datetime, created_at=current_datetime)
     db.add(db_organization)
     db.commit()
     db.refresh(db_organization)
 
+    # create entry for owner
     db_user_organization = schemas.UserOrganizationCreate(
         email=user.email, oid=db_organization.oid)
     __create_user_organizations(db, db_user_organization, True)
 
-    for invited in model.invitees:
+    # create entry for invitees
+    for invited in organization.invitees:
+        # avoid owner added twice
+        if invited == user.email:
+            continue
         i = schemas.UserOrganizationCreate(
             email=invited, oid=db_organization.oid)
         __create_user_organizations(db, i)
@@ -89,16 +93,20 @@ def create_organization(db: Session, model: schemas.OrganizationCreate, user: sc
     return db_organization
 
 
-def get_models(db: Session, user: schemas.User):
+def __get_user_models(db: Session, user: schemas.User):
     m_organizations = db.query(models.UserOrganizations).filter(models.UserOrganizations.email == user.email).filter(
         models.UserOrganizations.accepted == True).join(models.Model, models.Model.oid == models.UserOrganizations.oid).with_entities(models.Model)
     m = db.query(models.Model).join(models.User, models.User.email == user.email).filter(
         models.Model.oid.is_(None)).with_entities(models.Model)
-    return m.union(m_organizations).all()
+    return m.union(m_organizations)
+
+
+def get_models(db: Session, user: schemas.User):
+    return __get_user_models(db, user).all()
 
 
 def get_model(db: Session, model_id: int, user: schemas.User):
-    db_model = db.query(models.Model).join(models.User, models.Model.uid == models.User.uid).filter(models.User.uid == user.uid).filter(
+    db_model = __get_user_models(db, user).filter(
         models.Model.mid == model_id).first()
     if db_model:
         __verify_model_tasks(db, db_model, user)
@@ -106,12 +114,13 @@ def get_model(db: Session, model_id: int, user: schemas.User):
 
 
 def get_model_status_by_model_id(db: Session, model_id: int, user: schemas.User):
+    # this will make sure that the user has permission to view that model
     db_model = get_model(db, model_id, user)
     if not db_model:
         return db_model
 
-    db_model_status = db.query(models.ModelTask.mid, models.ModelTask.type, models.ModelTask.created_at, models.CeleryTaskMeta.status).filter(
-        models.ModelTask.tid == models.CeleryTaskMeta.task_id).filter(models.User.uid == user.uid).filter(models.ModelTask.mid == model_id).all()
+    db_model_status = db.query(models.ModelTask).join(
+        models.CeleryTaskMeta, models.ModelTask.tid == models.CeleryTaskMeta.task_id).filter(models.ModelTask.mid == model_id).with_entities(models.ModelTask.mid, models.ModelTask.type, models.ModelTask.created_at, models.CeleryTaskMeta.status).all()
 
     return db_model_status
 
@@ -135,10 +144,12 @@ def create_model(db: Session, model: schemas.ModelCreate, user: schemas.User):
 
 
 def get_model_results_by_model_id(db: Session, model_id: int, user: schemas.User, **kwargs):
+    qry = __get_user_models(db, user).join(models.ModelResults, models.ModelResults.mid ==
+                                           models.Model.mid).filter(models.ModelResults.mid == model_id).with_entities(models.ModelResults)
     if 'type' in kwargs:
-        return db.query(models.ModelResults).join(models.Model, models.ModelResults.mid == models.Model.mid).join(models.User, models.Model.uid == models.User.uid).filter(models.User.uid == user.uid).filter(models.ModelResults.mid == model_id).filter(models.ModelResults.type == kwargs.get('type')).all()
+        qry = qry.filter(models.ModelResults.type == kwargs.get('type'))
 
-    return db.query(models.ModelResults).join(models.Model, models.ModelResults.mid == models.Model.mid).join(models.User, models.Model.uid == models.User.uid).filter(models.User.uid == user.uid).filter(models.ModelResults.mid == model_id).all()
+    return qry.all()
 
 
 def __create_model_results(db: Session, model: schemas.ModelResultsCreate, user: schemas.User):
@@ -184,12 +195,19 @@ def __object_as_dict(obj):
 def __verify_model_tasks(db: Session, model: schemas.Model, user: schemas.User):
     # Optimization
     od = get_model_results_by_model_id(db, model.mid, user, type='optimizer')
+    # prevent results to be stored twice into db
+    model_tasks = __get_model_tasks_by_model_id(
+        db, model.mid, user, 'optimizer')
     if not od:
         model_tasks = __get_model_tasks_by_model_id(
             db, model.mid, user, 'optimizer')
         taskmeta = __get_celery_taskmeta_by_task_id(db, model_tasks.tid, user)
-
-        if taskmeta.status == 'FAILURE':
+        # Store model results if has not started due to error or has finished with failure or success
+        if not taskmeta:
+            optimization = schemas.ModelResultsCreate(
+                type='optimizer', information='Error', detail='There was an error creating a task for optimizing your model. Please make sure to follow the guidelines.', mid=model.mid)
+            __create_model_results(db, optimization, user)
+        elif taskmeta.status == 'FAILURE':
             optimization = schemas.ModelResultsCreate(
                 type='optimizer', information='Error', detail='There was an error optimizing your model. Please make sure to follow the guidelines.', mid=model.mid)
             __create_model_results(db, optimization, user)
