@@ -1,18 +1,7 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
-from backend.config.database import Base
+from config.database import Base
 from sqlalchemy.types import LargeBinary
-
-
-class Role(Base):
-    __tablename__ = "role"
-
-    rid = Column(Integer, primary_key=True, index=True)
-    type = Column(String)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-
-    users = relationship("User", back_populates="role")
 
 
 class Organization(Base):
@@ -20,10 +9,15 @@ class Organization(Base):
 
     oid = Column(Integer, primary_key=True, index=True)
     name = Column(String)
+    owner_id = Column(Integer, ForeignKey("users.uid"))
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
 
-    users = relationship("User", back_populates="organization")
+    owner = relationship("User", back_populates="organization_managed",
+                         primaryjoin="Organization.owner_id==User.uid")
+    models = relationship("Model", back_populates="organization")
+    organization_invitations = relationship("UserOrganizations", back_populates="organization",
+                                            primaryjoin="UserOrganizations.oid==Organization.oid")
 
 
 class User(Base):
@@ -35,10 +29,9 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
-    rid = Column(Integer, ForeignKey("role.rid"))
-    oid = Column(Integer, ForeignKey("organization.oid"))
-    role = relationship("Role", back_populates="users")
-    organization = relationship("Organization", back_populates="users")
+
+    organization_managed = relationship(
+        Organization, back_populates="owner", primaryjoin="Organization.owner_id==User.uid")
     model = relationship("Model", back_populates="user")
 
 
@@ -50,47 +43,24 @@ class Model(Base):
     source = Column(String)
     uploaded_at = Column(DateTime)
     uid = Column(Integer, ForeignKey("users.uid"))
+    oid = Column(Integer, ForeignKey("organization.oid"))
+    organization = relationship("Organization", back_populates="models")
     user = relationship("User", back_populates="model")
-    benchmarking_details = relationship("BenchmarkingDetails", back_populates="model")
-    optimization_details = relationship("OptimizationDetails", back_populates="model")
+    model_results = relationship(
+        "ModelResults", back_populates="model")
     model_task = relationship("ModelTask", back_populates="model")
 
 
-class Category(Base):
-    __tablename__ = "category"
+class ModelResults(Base):
+    __tablename__ = "model_results"
 
-    cid = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    benchmarking_details = relationship("BenchmarkingDetails", back_populates="category")
-    optimization_details = relationship("OptimizationDetails", back_populates="category")
-
-
-class BenchmarkingDetails(Base):
-    __tablename__ = "benchmarking_details"
-
-    bdid = Column(Integer, primary_key=True, index=True)
+    rid = Column(Integer, primary_key=True, index=True)
+    type = Column(String)
     information = Column(String)
     detail = Column(String)
     created_at = Column(DateTime)
     mid = Column(Integer, ForeignKey("model.mid"))
-    cid = Column(Integer, ForeignKey("category.cid"))
-    model = relationship("Model", back_populates="benchmarking_details")
-    category = relationship("Category", back_populates="benchmarking_details")
-
-
-class OptimizationDetails(Base):
-    __tablename__ = "optimization_details"
-
-    odid = Column(Integer, primary_key=True, index=True)
-    information = Column(String)
-    detail = Column(String)
-    created_at = Column(DateTime)
-    mid = Column(Integer, ForeignKey("model.mid"))
-    cid = Column(Integer, ForeignKey("category.cid"))
-    model = relationship("Model", back_populates="optimization_details")
-    category = relationship("Category", back_populates="optimization_details")
+    model = relationship("Model", back_populates="model_results")
 
 
 class CeleryTaskMeta(Base):
@@ -110,4 +80,17 @@ class ModelTask(Base):
     created_at = Column(DateTime)
     mid = Column(Integer, ForeignKey("model.mid"))
     model = relationship("Model", back_populates="model_task")
-    
+
+
+class UserOrganizations(Base):
+    __tablename__ = "user_organizations"
+
+    uoid = Column(Integer, primary_key=True, index=True)
+    email = Column(String)
+    accepted = Column(Boolean, default=False)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
+    oid = Column(Integer, ForeignKey("organization.oid"))
+    organization = relationship("Organization", back_populates="organization_invitations",
+                                primaryjoin="UserOrganizations.oid==Organization.oid")
+ 
