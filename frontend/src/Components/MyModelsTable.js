@@ -1,13 +1,19 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useTable } from 'react-table'
-import MOCK_DATA from './MOCK_DATA.json'
+// import MOCK_DATA from './MOCK_DATA.json'
 import { COLUMNS } from './Columns'
 import '../css/MyModelsTable.min.css'
+import axios from 'axios'
 
-export const BasicTable = () => {
-
+export function BasicTable() {
+    const [models, setModels] = useState(null);
+    useEffect(() => {
+        axios.get("http://localhost:8000/mymodels").then((response) => {
+            setModels(response.data);
+        });
+    }, []);
     const columns = useMemo(() => COLUMNS, [])
-    const data = useMemo(() => MOCK_DATA, [])
+    const data = useMemo(() => models.data, [])
 
     const tableInstance = useTable({
         columns,
