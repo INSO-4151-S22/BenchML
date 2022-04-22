@@ -1,14 +1,25 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 from controller import crud, auth
 from database import schemas, models
 from config.database import SessionLocal
+import config
 
 
 app = FastAPI()
 token_auth_scheme = HTTPBearer()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=config.get_settings().cors_allow_origins.split(','),
+    allow_credentials=config.get_settings().cors_allow_credentials,
+    allow_methods=config.get_settings().cors_allow_methods.split(','),
+    allow_headers=config.get_settings().cors_allow_headers.split(','),
+)
 
 
 def get_db():
