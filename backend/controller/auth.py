@@ -44,8 +44,8 @@ class VerifyToken():
             res = response.json()
             user = crud.get_user_by_email(self.db, res['email'])
             if not user:
-                u_schema = schemas.UserCreate(first_name=(res['nickname'])[
-                                              :50], last_name="", email=res['email'])
+                u_schema = schemas.UserCreate(first_name=(res['given_name'])[
+                                              :50], last_name=(res['family_name'])[:50], email=res['email'])
                 user = crud.create_user(self.db, u_schema)
             return user
         except Exception as e:

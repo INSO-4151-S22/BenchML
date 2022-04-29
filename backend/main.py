@@ -19,6 +19,11 @@ def get_db():
         db.close()
 
 
+def __record_not_found(model: str, id: int):
+    raise HTTPException(
+                status_code=404, detail=f"{model} item with id {id} not found")
+
+
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(token_auth_scheme)):
     user = auth.VerifyToken(db, token.credentials).verify()
 
@@ -47,8 +52,7 @@ def read_organizations_invitations(db: Session = Depends(get_db), user: schemas.
 def update_organizations_invitations_status(invitation_id: int, db: Session = Depends(get_db), user: schemas.User = Depends(get_current_user)):
     invitation = crud.set_user_organizations_accept(db, user, invitation_id)
     if not invitation:
-        raise HTTPException(
-            status_code=404, detail=f"Organization Invitation item with id {invitation_id} not found")
+        __record_not_found("Organization Invitation", invitation_id)
     return invitation
 
 
@@ -68,18 +72,18 @@ def read_models(db: Session = Depends(get_db), user: schemas.User = Depends(get_
 async def read_model(model_id: int, db: Session = Depends(get_db), user: schemas.User = Depends(get_current_user)):
     model = crud.get_model(db, model_id, user)
     if not model:
-        raise HTTPException(
-            status_code=404, detail=f"Model item with id {model_id} not found")
+        __record_not_found("Model", model_id)
     return model
 
 
 @app.post("/models/", response_model=schemas.Model)
 def create_model(model: schemas.ModelCreate, db: Session = Depends(get_db), user: schemas.User = Depends(get_current_user)):
-    if model.oid:
+    if model.oid == 0:
+        __record_not_found("Organization", model.oid)
+    elif model.oid:
         organization = crud.get_organizations_by_id(db, model.oid, user)
         if not organization:
-            raise HTTPException(
-                status_code=404, detail=f"Organization item with id {model.oid} not found")
+            __record_not_found("Organization", model.oid)
     model_insert = crud.create_model(db, model, user)
     return model_insert
 
@@ -88,8 +92,7 @@ def create_model(model: schemas.ModelCreate, db: Session = Depends(get_db), user
 async def read_model_status(model_id: int, db: Session = Depends(get_db), user: schemas.User = Depends(get_current_user)):
     model_status = crud.get_model_status_by_model_id(db, model_id, user)
     if not model_status:
-        raise HTTPException(
-            status_code=404, detail=f"No Model Status for Model item with id {model_id} not found")
+        __record_not_found("Model Status for Model", model_id)
     return model_status
 
 
@@ -97,6 +100,5 @@ async def read_model_status(model_id: int, db: Session = Depends(get_db), user: 
 async def read_model_details(model_id: int, db: Session = Depends(get_db), user: schemas.User = Depends(get_current_user)):
     model_details = crud.get_model_results_by_model_id(db, model_id, user)
     if not model_details:
-        raise HTTPException(
-            status_code=404, detail=f"Model Results for Model item with id {model_id} not found")
+        __record_not_found("Model Results for Model", model_id)
     return model_details
