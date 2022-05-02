@@ -32,10 +32,7 @@ class Optimize:
         '''
 
         net = Optimize.create_model_from_args(self, config)
-        loss, accuracy = net.train()       
-
-        # Report findings to ray for hyperparameter tuning/optimization
-        tune.report(loss=loss, accuracy=accuracy)
+        net.train()       
         print("Training completed for model")
 
     def run(self, url):
