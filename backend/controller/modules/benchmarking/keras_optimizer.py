@@ -27,7 +27,7 @@ class KerasOptimizer():
             for layer in layers:
                 layer_args = {}
                 keyword_name = ''
-
+                
                 for i in range(1, len(layer-1), 2):
                     keyword_name = layer[i]  # First is the keyword name and then the value for it
                     if isinstance(layer[i+1], str) and config[layer[i+1]]:

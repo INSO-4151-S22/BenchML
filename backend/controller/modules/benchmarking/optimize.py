@@ -10,17 +10,18 @@ from backend.controller.modules.benchmarking.pytorch_optimizer import PyTorchOpt
 
 class Optimize:
 
-    def __init__(self, resources = {'cpu': 2, 'gpu':1}):
+    def __init__(self, resources = {'cpu': 2, 'gpu':1}, model_type = None):
         self.resources = resources
-
+        self.model_type = model_type
+        
     def create_model_from_args(self, config):
         """Based on the model type in config, create a model for use with ray tune."""
-        if config['model_type'] == 'keras':
+        if self.model_type == 'keras':
             return KerasOptimizer().create_model(config)
-        elif config['model_type'] == 'pytorch':
+        elif self.model_type == 'pytorch':
             return PyTorchOptimizer().create_model(config)
         else: 
-            raise Exception(f"No model type available for {config['model_type']}")
+            raise Exception(f"No model type available for {self.model_type}")
 
     def train(self, config):
         '''
