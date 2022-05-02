@@ -4,6 +4,7 @@ venv
 bin/
 dist/
 lib/
+frontend/build/
 
 
 # editors
