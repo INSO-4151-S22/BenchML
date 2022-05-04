@@ -54,6 +54,7 @@ class ModelBase(BaseModel):
 
 class ModelCreate(ModelBase):
     modules: Set[Literal["optimizer"]]
+    type: Literal["pytorch", "keras"]
 
 
 class Model(ModelBase):

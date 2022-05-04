@@ -5,8 +5,8 @@ import numpy as np
 from ray.tune.schedulers import ASHAScheduler
 import requests
 import json
-from backend.controller.modules.benchmarking.keras_optimizer import KerasOptimizer
-from backend.controller.modules.benchmarking.pytorch_optimizer import PyTorchOptimizer
+from controller.modules.benchmarking.keras_optimizer import KerasOptimizer
+from controller.modules.benchmarking.pytorch_optimizer import PyTorchOptimizer
 
 class Optimize:
 

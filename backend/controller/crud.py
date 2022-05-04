@@ -136,7 +136,7 @@ def create_model(db: Session, model: schemas.ModelCreate, user: schemas.User):
     db.refresh(db_model)
 
     if 'optimizer' in model.modules:
-        om = optimize_model.delay(model.source)
+        om = optimize_model.delay(model.source, model.type)
         model_task = schemas.ModelTaskCreate(
             tid=om.task_id, mid=db_model.mid, type="optimizer", queue="celery")
         __create_model_task(db, model_task, user)
