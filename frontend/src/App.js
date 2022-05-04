@@ -8,12 +8,12 @@ import Home from "./pages/Home";
 function App() {
   return (
     <Router>
+      <Navbar />
       <Routes>
         <Route path="/" element={ <Home></Home> }></Route>
         <Route path="/mymodels" element={ <MyModels></MyModels>}></Route>
       </Routes>
     </Router>
-   
   );
 }
 

@@ -1,11 +1,18 @@
 import React from 'react';
-import Navbar from "../Components/Navbar/Navbar";
+import "../css/Home.min.css";
 
 function Home() {
     return (
-        <div>
-            <Navbar />
-            THIS IS THE HOME PAGE
+        <div className='container'>
+            <div className='intro'>
+            <p>Benchmarking and Optimization for your
+               Machine Learning Models
+            </p>
+            </div>
+            <button
+            className="start-here">
+            Start here
+        </button>
         </div>
     );
 }

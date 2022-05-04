@@ -1,32 +1,31 @@
-import React, { Component } from 'react';
 import '../../css/Navbar.min.css';
-import { FaUserAlt } from 'react-icons/fa';
-import { IconContext } from 'react-icons';
+import React, { Component } from 'react';
+import { Link } from 'react-router-dom'
 
-class Navbar extends Component {
-    render() {
+function Navbar() {
+
+    const hexColor = {
+    color: '#ffffff'
+    };
         return(
-        <div className='NavbarItems'>
-
+        <div className='navbar-items'>
             <div className='start'>
                 <p className='Bench'>Bench</p>
                 <p className='ML'>ML</p>
             </div>
-
             <div className='end'>
-                <p className='MyModels' >My Models</p>
-                <IconContext.Provider value={{size: "1rem"}}>
-                <FaUserAlt className='user-icon'/>
-                </IconContext.Provider>
-                
-            </div>
-            
-            
+                <ul className='models-account'>
+                    <li className='nav-item'>
+                        {/* <NavLink to="/mymodels" activeStyle={{color: "red", text}} */}
+                    <Link className="nav-item-link" to="/mymodels" style={{ textDecoration: 'none'}}>My Models</Link>
+                    </li>
+                    <li className='nav-item'>
+                    <Link className="nav-item-link" to="/" style={{ textDecoration: 'none'}}>My Account</Link>
+                    </li>
+                </ul>
+            </div>    
         </div>
-          
-       
-        )
+        );
     }
-}
 
-export default Navbar
+export default Navbar;
