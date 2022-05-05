@@ -1,0 +1,32 @@
+.container {
+    position: flex;
+    flex-direction: column;
+    display: block;
+    height: 200px;
+
+    .intro {
+        inline-size: 30rem;
+        overflow-wrap: break-word;
+        text-align: center;
+        margin-left: 5%;
+        margin-top: 5%;
+        font-size: 1.5rem;
+    }
+
+    .start-here{
+        padding: 7px 12px;
+        display: block;
+        margin-top: 0;
+        text-align: center;
+       // margin-left: 12%;
+        font-size: 18px;
+        border-style: solid;
+        border-radius: 5px;
+        border-color: #4A7C59;
+        background-color: #4A7C59;
+        font-size: 1.05rem;
+        color: #f1f1f1;
+        font-weight: 600;
+        letter-spacing: -1px;
+    }
+}

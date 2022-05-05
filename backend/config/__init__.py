@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     auth0_algorithms: str
     auth0_issuer: str
     timezone: str
+    cors_allow_origins: str
+    cors_allow_credentials: bool
+    cors_allow_methods: str
+    cors_allow_headers: str
 
     class Config:
         env_file = ".env"

@@ -109,7 +109,7 @@ def get_model(db: Session, model_id: int, user: schemas.User):
     db_model = __get_user_models(db, user).filter(
         models.Model.mid == model_id).first()
     if db_model:
-        __verify_model_tasks(db, db_model, user)
+        __verify_model_tasks(db, db_model.mid, user)
     return db_model
 
 
@@ -144,11 +144,18 @@ def create_model(db: Session, model: schemas.ModelCreate, user: schemas.User):
 
 
 def get_model_results_by_model_id(db: Session, model_id: int, user: schemas.User, **kwargs):
-    qry = __get_user_models(db, user).join(models.ModelResults, models.ModelResults.mid ==
-                                           models.Model.mid).filter(models.ModelResults.mid == model_id).with_entities(models.ModelResults)
+    db_models = __get_user_models(db, user).filter(
+        models.Model.mid == model_id)
+
+    # if called internally, avoid infinite loop
+    if ('mode' not in kwargs or not kwargs.get('mode') == 'internal') and db_models.first():
+        __verify_model_tasks(db, model_id, user)
+
+    qry = db_models.join(models.ModelResults, models.ModelResults.mid ==
+                         models.Model.mid).with_entities(models.ModelResults)
     if 'type' in kwargs:
         qry = qry.filter(models.ModelResults.type == kwargs.get('type'))
-
+    
     return qry.all()
 
 
@@ -192,30 +199,35 @@ def __object_as_dict(obj):
 
 
 # Check if the celery task has finished or failed and fetch that data (if not done previously)
-def __verify_model_tasks(db: Session, model: schemas.Model, user: schemas.User):
+def __verify_model_tasks(db: Session, model_id: int, user: schemas.User):
     # Optimization
-    od = get_model_results_by_model_id(db, model.mid, user, type='optimizer')
     # prevent results to be stored twice into db
-    model_tasks = __get_model_tasks_by_model_id(
-        db, model.mid, user, 'optimizer')
+    od = get_model_results_by_model_id(
+        db, model_id, user, type='optimizer', mode="internal")
+
     if not od:
         model_tasks = __get_model_tasks_by_model_id(
-            db, model.mid, user, 'optimizer')
+            db, model_id, user, 'optimizer')
         taskmeta = __get_celery_taskmeta_by_task_id(db, model_tasks.tid, user)
         # Store model results if has not started due to error or has finished with failure or success
         if not taskmeta:
-            optimization = schemas.ModelResultsCreate(
-                type='optimizer', information='Error', detail='There was an error creating a task for optimizing your model. Please make sure to follow the guidelines.', mid=model.mid)
-            __create_model_results(db, optimization, user)
+            # In the case of Celery being down, this will get called. Return in order to allow for later processing.
+            return
+            # optimization = schemas.ModelResultsCreate(
+            #     type='optimizer', information='Error', detail='There was an error creating a task for optimizing your model. Please make sure to follow the guidelines.', mid=model_id)
+            # __create_model_results(db, optimization, user)
         elif taskmeta.status == 'FAILURE':
             optimization = schemas.ModelResultsCreate(
-                type='optimizer', information='Error', detail='There was an error optimizing your model. Please make sure to follow the guidelines.', mid=model.mid)
+                type='optimizer', information='Error', detail='There was an error optimizing your model. Please make sure to follow the guidelines.', mid=model_id)
             __create_model_results(db, optimization, user)
 
         elif taskmeta.status == 'SUCCESS':
             data = __object_as_dict(taskmeta)
-            res = pickle.loads(data['result'])
-            for k in res:
-                optimization = schemas.ModelResultsCreate(type='optimizer', information=str(k), detail=json.dumps(res[k]),
-                                                          mid=model.mid)
-                __create_model_results(db, optimization, user)
+            try:
+                res = pickle.loads(data['result'])
+                for k in res:
+                    optimization = schemas.ModelResultsCreate(type='optimizer', information=str(k), detail=json.dumps(res[k]),
+                                                              mid=model_id)
+                    __create_model_results(db, optimization, user)
+            except Exception as e:
+                return None
