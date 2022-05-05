@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     cors_allow_credentials: bool
     cors_allow_methods: str
     cors_allow_headers: str
+    optimizer_resources: str
 
     class Config:
         env_file = ".env"
