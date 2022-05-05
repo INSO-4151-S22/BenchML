@@ -41,6 +41,7 @@ class Model(Base):
     mid = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     source = Column(String)
+    type = Column(String)
     uploaded_at = Column(DateTime)
     uid = Column(Integer, ForeignKey("users.uid"))
     oid = Column(Integer, ForeignKey("organization.oid"))

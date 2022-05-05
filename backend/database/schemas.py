@@ -50,11 +50,11 @@ class ModelBase(BaseModel):
     name: str
     source: HttpUrl
     oid: Optional[int]
+    type: Literal["pytorch", "keras"]
 
 
 class ModelCreate(ModelBase):
     modules: Set[Literal["optimizer"]]
-    type: Literal["pytorch", "keras"]
 
 
 class Model(ModelBase):
