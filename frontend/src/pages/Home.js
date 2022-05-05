@@ -13,6 +13,9 @@ function Home() {
             className="start-here">
             Start here
         </button>
+        <div>
+            Example
+        </div>
         </div>
     );
 }
