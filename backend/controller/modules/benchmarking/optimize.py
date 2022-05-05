@@ -10,16 +10,16 @@ from backend.controller.modules.benchmarking.pytorch_optimizer import PyTorchOpt
 
 class Optimize:
 
-    def __init__(self, resources = {'cpu': 2, 'gpu':1}, model_type = None):
+    def __init__(self, resources = {'cpu': 2, 'gpu' : 0}, model_type = None):
         self.resources = resources
         self.model_type = model_type
         
-    def create_model_from_args(self, config):
+    def get_optimizer(self):
         """Based on the model type in config, create a model for use with ray tune."""
         if self.model_type == 'keras':
-            return KerasOptimizer().create_model(config)
+            return KerasOptimizer()
         elif self.model_type == 'pytorch':
-            return PyTorchOptimizer().create_model(config)
+            return PyTorchOptimizer()
         else: 
             raise Exception(f"No model type available for {self.model_type}")
 
@@ -32,8 +32,8 @@ class Optimize:
             config: A JSON object containing the model arguments.
         '''
 
-        net = Optimize.create_model_from_args(self, config)
-        net.train()       
+        net = self.get_optimizer()  # Create model for that specific optimizer based on self.model_type
+        net.train(config)  # Train the model with the config for this current version
         print("Training completed for model")
 
     def run(self, url):
@@ -107,10 +107,16 @@ class Optimize:
         for k in parsed_config.keys():
             if k == 'model_type' or k == 'layers':
                 pass
-            elif k == 'lr' and parsed_config[k] and len(parsed_config[k]) == 0:
-                parsed_config[k] = learning_rate
-            elif k == 'batch_size' and parsed_config[k] and len(parsed_config[k]) == 0:
-                parsed_config[k] = batch_size
+            elif k == 'lr':
+                if parsed_config[k] and len(parsed_config[k]) == 0:
+                    parsed_config[k] = learning_rate
+                else:
+                    parsed_config[k] = float(parsed_config[k])
+            elif k == 'batch_size':
+                if parsed_config[k] and len(parsed_config[k]) == 0:
+                    parsed_config[k] = batch_size
+                else:
+                    parsed_config[k] = int(parsed_config[k])
             else:
                 parsed_config[k] = tune.sample_from(lambda _: 2 ** np.random.randint(2, 9))
                 
