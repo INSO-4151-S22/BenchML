@@ -7,6 +7,7 @@ import requests
 import json
 from backend.controller.modules.benchmarking.keras_optimizer import KerasOptimizer
 from backend.controller.modules.benchmarking.pytorch_optimizer import PyTorchOptimizer
+import ast 
 
 class Optimize:
 
@@ -94,7 +95,7 @@ class Optimize:
                     for param in layer:
                         if(isinstance(param, str)):
                             try:
-                                l.append(int(param))
+                                l.append(ast.literal_eval(param))
                             except ValueError:
                                 l.append(param)
                     parsed_config[k].append(l)

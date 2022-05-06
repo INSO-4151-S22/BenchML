@@ -34,15 +34,11 @@ class PyTorchOptimizer():
                 '''
                 Reshape layer to be used for replacing x.view and add it as a ModuleList.
                 '''
-                def __init__(self, *args):
+                def __init__(self):
                     super(Reshape, self).__init__()
-                    self.shape = args
 
                 def forward(self, x):
-                    return x.view(self.shape)
-
-                def extra_repr(self):
-                    return f"shape={self.shape}"
+                    return x.view(x.size(0), -1)
 
             class Net(nn.Module):
                 
@@ -52,6 +48,7 @@ class PyTorchOptimizer():
                     self.model = nn.ModuleList()
                     try:
                         for layer in layers:
+                            print(f"layer: {layer}")
                             module_ = None
                             if len(layer) > 0:  # Modules that are part of the torch nn import
                                 layer_args = []
@@ -191,6 +188,6 @@ class PyTorchOptimizer():
 
         # Report loss and accuracy to ray tune
         tune.report(loss=(val_loss / val_steps), accuracy=correct / total)
-    
+        print(f"loss: {(val_loss / val_steps)}, acc: {correct / total}")
 
     
