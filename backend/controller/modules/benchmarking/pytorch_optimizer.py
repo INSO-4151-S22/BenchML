@@ -22,7 +22,7 @@ class PyTorchOptimizer():
             Pytorch neural network. 
 
             Args:
-                    config: configuration values that contain model architecture.
+                config: configuration values that contain model architecture.
 
                 Returns:
                     Pytorch Neural Network with provided configuration architecture.
@@ -34,12 +34,11 @@ class PyTorchOptimizer():
                 '''
                 Reshape layer to be used for replacing x.view and add it as a ModuleList.
                 '''
-                def __init__(self, *args):
+                def __init__(self):
                     super(Reshape, self).__init__()
-                    self.shape = args
 
                 def forward(self, x):
-                    return x.view(self.shape)
+                    return x.view(x.size(0), -1)
 
             class Net(nn.Module):
                 
@@ -49,17 +48,19 @@ class PyTorchOptimizer():
                     self.model = nn.ModuleList()
                     try:
                         for layer in layers:
-                            if layer[0] == 'Reshape':  # Custom module not in nn
-                                self.model.append(Reshape())
-                            elif layer[0]:  # Modules that are part of the torch nn import
+                            print(f"layer: {layer}")
+                            module_ = None
+                            if len(layer) > 0:  # Modules that are part of the torch nn import
                                 layer_args = []
                                 for i in range(1, len(layer)):
                                     if isinstance(layer[i], str) and config[layer[i]]:
-                                        print(f"got here, with {config[layer[i]]}")
                                         layer_args.append(config[layer[i]])  # Applies a config value to it if available
                                     else:
                                         layer_args.append(layer[i])
-                                module_ = getattr(nn, layer[0])  # Create module from string
+                                if layer[0] == 'Reshape':  # Custom module not in nn
+                                    module_ = Reshape
+                                else:
+                                    module_ = getattr(nn, layer[0])  # Create module from string
                                 self.model.append(module_(*layer_args))  # Create the instance and save it in the module list
                     except:
                         raise ArgumentTypeError("Some layers are incompatible with the optimization model creation for this current version.")
@@ -187,6 +188,6 @@ class PyTorchOptimizer():
 
         # Report loss and accuracy to ray tune
         tune.report(loss=(val_loss / val_steps), accuracy=correct / total)
-    
+        print(f"loss: {(val_loss / val_steps)}, acc: {correct / total}")
 
     
