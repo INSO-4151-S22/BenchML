@@ -4,6 +4,7 @@ venv
 bin/
 dist/
 lib/
+frontend/build/
 
 
 # editors
@@ -15,6 +16,8 @@ lib/
 
 frontend/node_modules/
 frontend/package-lock.json
+frontend/src/auth_config.json
+
 __pycache__/
 .expo/*
 npm-debug.*
@@ -25,3 +28,4 @@ npm-debug.*
 *.mobileprovision
 .orig.
 web-build/
+frontend/yarn.lock
