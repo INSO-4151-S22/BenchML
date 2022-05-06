@@ -16,6 +16,8 @@ frontend/build/
 
 frontend/node_modules/
 frontend/package-lock.json
+frontend/src/auth_config.json
+
 __pycache__/
 .expo/*
 npm-debug.*

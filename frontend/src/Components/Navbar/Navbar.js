@@ -3,6 +3,7 @@ import '../../css/Navbar.min.css';
 import { FaUserAlt } from 'react-icons/fa';
 import { IconContext } from 'react-icons';
 
+
 class Navbar extends Component {
     render() {
         return(

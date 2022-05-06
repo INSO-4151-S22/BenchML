@@ -1,5 +1,4 @@
 import React from 'react';
-// import Navbar from "./Components/Navbar/Navbar";
 import './css/App.min.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MyModels from './pages/MyModels';
@@ -11,9 +10,9 @@ function App() {
     isLoading,
     isAuthenticated,
     error,
-    user,
+    // user,
     loginWithRedirect,
-    logout,
+    // logout,
   } = useAuth0();
 
   if (isLoading) {
@@ -37,6 +36,7 @@ function App() {
   } else {
     return <button onClick={loginWithRedirect}>Log in</button>;
   }
+
 }
 
 
