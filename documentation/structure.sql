@@ -1,21 +1,3 @@
-create table Role
-(
-    rid        serial
-        constraint role_pk
-            primary key,
-    type       varchar(20) not null,
-    created_at timestamptz not null,
-    updated_at timestamptz not null
-);
-
-create unique index role_rid_uindex
-    on Role (rid);
-
-create unique index role_type_uindex
-    on Role (type);
-
-
-
 create table Organization
 (
     oid        serial
@@ -23,7 +5,10 @@ create table Organization
             primary key,
     name       varchar(100) not null,
     created_at timestamptz  not null,
-    updated_at timestamptz  not null
+    updated_at timestamptz  not null,
+    owner_id         int          not null
+    constraint uid
+        references users
 );
 
 create unique index organization_oid_uindex
@@ -43,13 +28,7 @@ create table Users
     last_name  varchar(50)  not null,
     email      varchar(250) not null,
     created_at timestamptz  not null,
-    updated_at timestamptz  not null,
-    rid        int          not null
-        constraint rid
-            references role,
-    oid        int          not null
-        constraint oid
-            references organization
+    updated_at timestamptz  not null
 );
 
 create unique index user_email_uindex
@@ -57,24 +36,6 @@ create unique index user_email_uindex
 
 create unique index user_uid_uindex
     on Users (uid);
-
-
-
-create table Category
-(
-    cid        serial
-        constraint category_pk
-            primary key,
-    name       varchar(50) not null,
-    created_at timestamptz not null,
-    updated_at timestamptz not null
-);
-
-create unique index category_cid_uindex
-    on Category (cid);
-
-create unique index category_name_uindex
-    on Category (name);
 
 
 
@@ -88,7 +49,10 @@ create table Model
     uploaded_at timestamptz  not null,
     uid         int          not null
         constraint uid
-            references users
+            references users,
+    oid        int
+        constraint oid
+            references organization
 );
 
 create unique index model_mid_uindex
@@ -96,45 +60,23 @@ create unique index model_mid_uindex
 
 
 
-create table Optimization_Details
+create table Model_Results
 (
-    odid        serial
-        constraint optimization_details_pk
+    rid         serial
+        constraint model_results_pk
             primary key,
+    type        varchar(20)  not null,
     information varchar(250) not null,
-    detail      TEXT not null,
+    detail      TEXT         not null,
     created_at  timestamptz  not null,
     mid         int          not null
         constraint mid
-            references Model,
-    cid         int          not null
-        constraint cid
-            references Category
+            references Model
 );
 
-create unique index optimization_details_odid_uindex
-    on Optimization_Details (odid);
+create unique index model_results_rid_uindex
+    on Model_Results (rid);
 
-
-
-create table Benchmarking_Details
-(
-    bdid        serial
-        constraint benchmarking_details_pk
-            primary key,
-    information varchar(250) not null,
-    detail      varchar(250) not null,
-    created_at  timestamptz  not null,
-    mid         int          not null
-        constraint mid
-            references Model,
-    cid         int          not null
-        constraint cid
-            references Category
-);
-
-create unique index benchmarking_details_bdid_uindex
-    on Benchmarking_Details (bdid);
 
 
 create table Model_Task
@@ -152,3 +94,21 @@ create table Model_Task
 
 create unique index model_task_tid_uindex
     on Model_Task (tid);
+
+
+create table user_organizations
+(
+    uoid       serial
+        constraint user_organizations_pk
+            primary key,
+    oid        int                not null
+        constraint user_organizations_organization_oid_fk
+            references organization,
+    email      varchar(250)       not null,
+    accepted   bool default False not null,
+    created_at timestamptz        not null,
+    updated_at timestamptz        not null
+);
+
+create unique index user_organizations_uoid_uindex
+    on user_organizations (uoid);
