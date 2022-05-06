@@ -8,7 +8,6 @@ import '../css/MyModelsTable.min.css'
 export function BasicTable(props) {
     
     const modelDisplay = [];
-    console.log(props.models[0]);
     for (var i=0; i < props.models.length; i++){
         modelDisplay.push({"name":props.models[i].name, "date" : props.models[i].uploaded_at,"description":props.models[i].source});
     }
@@ -25,7 +24,6 @@ export function BasicTable(props) {
     const { 
         getTableProps, 
         getTableBodyProps,
-        getCellValue,
          headerGroups, 
          rows, 
          prepareRow,

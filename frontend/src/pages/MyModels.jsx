@@ -13,15 +13,6 @@ function MyModels() {
     const [Models, setModels] = useState(null);
 
     let isRendered = useRef(false);
-    // const getModels = async () => {
-    //     const t = await getAccessTokenSilently();
-    //     console.log(t);
-    //     axios.get(baseURL,{ headers: { 'Authorization': `Bearer ${t}`}}).then((response) => {
-    //         setModels(response.data);
-    //         console.log(response);
-    //     });
-
-    //   };
 
     useEffect(() => {
         isRendered=true;
@@ -30,7 +21,6 @@ function MyModels() {
             console.log(t);
             axios.get(baseURL,{ headers: { 'Authorization': `Bearer ${t}`}}).then((response) => {
                 if (isRendered) {
-                    // console.log(response);
                     setModels(response.data);
                     
                 }
