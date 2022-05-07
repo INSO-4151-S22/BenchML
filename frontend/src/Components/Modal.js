@@ -1,15 +1,21 @@
 import React, { useState } from "react";
 import "../css/Modal.min.css";
 import Dropdown from "./Dropdown";
+import configJson from '../auth_config.json'
+import { useAuth0 } from "@auth0/auth0-react";
+import axios from 'axios';
 
+const baseURL = configJson.baseUrl; 
 
 export default function Modal() {
     // Consts used in modal
+    const { getAccessTokenSilently } = useAuth0(); 
     const [modal, setModal] = useState(false);
     const toggleModal = () => {
         setModal(!modal)
     }
     const [inputs, setInputs] = useState({});
+
     const handleChange = (event) => {
         const name = event.target.name;
         const value = event.target.value;
@@ -22,10 +28,29 @@ export default function Modal() {
     console.log(selectedOption);
     };
 
+    const postModel = async() => {
+        const t = await getAccessTokenSilently();
+        await axios.post(baseURL+"models",
+        {
+            "name" : inputs.filename,
+            "source" : inputs.repourl,
+            "type" : "pytorch",
+            "modules" : ["optimizer"]
+        },
+        { headers: { 'Authorization': `Bearer ${t}`}}
+        ).then((response) => {
+            console.log(response);
+        })
+        .catch(err => console.log(err));      
+    }
+
     const handleSubmit = (event) => {
         event.preventDefault();
         alert(inputs);
+        postModel();
       }
+
+    
 
     if(modal) {
         document.body.classList.add('active-modal')

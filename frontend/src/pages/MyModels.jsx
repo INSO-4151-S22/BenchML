@@ -22,7 +22,7 @@ function MyModels() {
         const getModels = async () => {
             const t = await getAccessTokenSilently();
             console.log(t);
-            axios.get(baseURL,{ headers: { 'Authorization': `Bearer ${t}`}}).then((response) => {
+            axios.get(baseURL+"/models",{ headers: { 'Authorization': `Bearer ${t}`}}).then((response) => {
                 if (isRendered) {
                     setModels(response.data);
                     
