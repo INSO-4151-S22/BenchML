@@ -1,8 +1,8 @@
-import React, { useMemo, useEffect, useState, useRef } from 'react'
+import React, { useMemo } from 'react'
 import { useTable } from 'react-table'
-import MOCK_DATA from './MOCK_DATA.json'
 import { COLUMNS } from './Columns'
 import '../css/MyModelsTable.min.css'
+
 
 
 export function BasicTable(props) {
