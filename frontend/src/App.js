@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MyModels from './pages/MyModels';
 import Home from "./pages/Home";
 import { useAuth0 } from '@auth0/auth0-react';
-import Navbar from 'Components/Navbar/Navbar';
+import Navbar from './Components/Navbar/Navbar';
 
 function App() {
     const {
