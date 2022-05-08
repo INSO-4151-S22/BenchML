@@ -15,26 +15,29 @@ export default function Modal() {
         setModal(!modal)
     }
     const [inputs, setInputs] = useState({});
+    const [type, setType] = useState("");
+    
 
     const handleChange = (event) => {
         const name = event.target.name;
         const value = event.target.value;
-        setInputs(values => ({...values, [name]: value}))
+        setInputs(values => ({...values, [name]: value}));
       }
 
     const onOptionClicked = value => () => {
     setSelectedOption(value);
     setIsOpen(false);
-    console.log(selectedOption);
+    // console.log(selectedOption);
     };
 
     const postModel = async() => {
+        console.log(type);
         const t = await getAccessTokenSilently();
-        await axios.post(baseURL+"models",
+        await axios.post(baseURL+"/models",
         {
             "name" : inputs.filename,
             "source" : inputs.repourl,
-            "type" : "pytorch",
+            "type" : type,
             "modules" : ["optimizer"]
         },
         { headers: { 'Authorization': `Bearer ${t}`}}
@@ -45,6 +48,7 @@ export default function Modal() {
     }
 
     const handleSubmit = (event) => {
+        // console.log(inputs);
         event.preventDefault();
         alert(inputs);
         postModel();
@@ -66,7 +70,7 @@ export default function Modal() {
         </button>
         {modal && (
             <div className="modal">
-            <div className="overlay"></div>
+            <div className="overlay">
             <div className = "modal-content">
                 {/* <div className="elements-container"> */}
                     <div className="top-elements">
@@ -87,9 +91,7 @@ export default function Modal() {
                                 onChange={handleChange}
                             />
                         </label>
-                        <Dropdown />
-                    </form>
-                    </div>
+                        <Dropdown  func={setType}/>
                     <div className="bottom-buttons">
                         <button className="close-modal"
                         onClick={toggleModal}>
@@ -97,7 +99,10 @@ export default function Modal() {
                         </button>
                         <input type="submit" value="Submit" />
                     </div>
-                {/* </div> */}
+                    </form>
+                    </div>
+                    
+                </div>
             </div>
             </div>
         )}
