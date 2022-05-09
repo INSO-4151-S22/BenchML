@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from 'styled-components';
 
-export default function Dropdown() {
+export default function Dropdown(props) {
 
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOption, setSelectedOption] = useState(null);
@@ -11,7 +11,9 @@ export default function Dropdown() {
     const onOptionClicked = value => () => {
     setSelectedOption(value);
     setIsOpen(false);
-    console.log(selectedOption);
+    // console.log(selectedOption);
+    // console.log(value);
+    props.func(value);
     };
 
     const Main = styled("div")`
