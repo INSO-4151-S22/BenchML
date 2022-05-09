@@ -130,13 +130,13 @@ def create_model(db: Session, model: schemas.ModelCreate, user: schemas.User):
     # 1. create model
     current_datetime = get_datetime_now()
     db_model = models.Model(name=model.name, source=model.source, oid=model.oid,
-                            uploaded_at=current_datetime, uid=user.uid)
+                            uploaded_at=current_datetime, uid=user.uid, type=model.type)
     db.add(db_model)
     db.commit()
     db.refresh(db_model)
 
     if 'optimizer' in model.modules:
-        om = optimize_model.delay(model.source)
+        om = optimize_model.delay(model.source, model.type)
         model_task = schemas.ModelTaskCreate(
             tid=om.task_id, mid=db_model.mid, type="optimizer", queue="celery")
         __create_model_task(db, model_task, user)
@@ -155,7 +155,7 @@ def get_model_results_by_model_id(db: Session, model_id: int, user: schemas.User
                          models.Model.mid).with_entities(models.ModelResults)
     if 'type' in kwargs:
         qry = qry.filter(models.ModelResults.type == kwargs.get('type'))
-    
+
     return qry.all()
 
 

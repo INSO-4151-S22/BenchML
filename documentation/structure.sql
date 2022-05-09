@@ -47,6 +47,7 @@ create table Model
     name        varchar(100) not null,
     source      varchar(250) not null,
     uploaded_at timestamptz  not null,
+    type        varchar(15)  not null,
     uid         int          not null
         constraint uid
             references users,

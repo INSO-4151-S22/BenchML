@@ -50,6 +50,7 @@ class ModelBase(BaseModel):
     name: str
     source: HttpUrl
     oid: Optional[int]
+    type: Literal["pytorch", "keras"]
 
 
 class ModelCreate(ModelBase):
