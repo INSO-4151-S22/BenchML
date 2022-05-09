@@ -1,56 +1,43 @@
-.NavbarItems {
+.navbar-items {
     background-color: #1E2019;
     height: 50px;
     width: 100%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    font-size: 1rem;
     
-    
-
-
     .start {
         display: flex;
         flex-direction: row;
         padding-left: 1%;
+        text-decoration: none;
     }
 
     .Bench {
         color: #DFEFCA;
-        font-size: 1rem;
         order: 1;
     }
     
     .ML {
         color: #AFC2D5; 
-        font-size: 1rem;
         order: 2;
     }
 
-    .end{
-        display: flex;
-        flex-direction: row;
+    .end {
         padding-right: 1%;
-    }
-    .MyModels {
-        font-size: 1rem;
-        color: #FFFFFF;
-        order: 1;
-        white-space: nowrap;
-    }
-    
-    .user-icon {
-        color: #FFFFFF;
-        order: 2;
-        padding-left: 15%;
-        margin-top: 15%;
-    }
-    
+        .models-account {
+            display: flex;
+            flex-direction: row;
+            list-style: none;
 
-    
-   
-   
+            .nav-item {
+                padding-left: 3%;
+                inline-size: 6rem;
+                .nav-item-link{
+                    color: #FFFF
+                }
+            }
+        }
+    }
 }
-   
-
-

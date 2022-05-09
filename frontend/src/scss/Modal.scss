@@ -1,0 +1,82 @@
+body.active-modal {
+    overflow-y: hidden;
+}
+
+.btn-modal {
+    padding: 8px 13px;
+    display: block;
+    margin-top: 0;
+    margin-bottom: 1%;
+    margin-left: auto;
+    margin-right: 1%;
+    font-size: 18px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: #4A7C59;
+    background-color: #4A7C59;
+    font-size: 1rem;
+    color: #f1f1f1;
+    font-weight: 500;
+}
+
+.modal, .overlay {
+    width:100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: fixed;
+}
+
+.overlay {
+    background: rgba(49,49,49,0.8);
+}
+.modal-content {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1.4;
+    background: #f1f1f1;
+    padding: 14px 28px;
+    border-radius: 3px;
+    max-width: 600px;
+    min-width: 300px;
+    height: 300px;
+}
+
+.elements-container {
+    display: flex;
+    flex-direction: column;
+}
+
+form {
+    
+    label {
+        input {
+            display: block;
+            width: 90%;
+            font-size: 1rem;
+            border: 0.5px solid rgba(30,32,25,0.25);
+            border-radius: 5px;
+        } 
+        margin-bottom: 5%;
+    }
+
+}
+
+.bottom-buttons {
+    position: fixed;
+    bottom: 20px;
+    width: 85%;
+    text-align: end;
+    button {
+        font-size: 1rem;
+    }
+    
+}
+
+//  .close-modal {
+   
+//  }
