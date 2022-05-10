@@ -16,8 +16,8 @@ function Home() {
                 </p>
             </div>
             {isAuthenticated ?
-            <Link to="/models">
-                <button className="start-here">Start here</button> 
+            <Link to="/mymodels" style={{ textDecoration: 'none'}}>
+                <button className="start-here">Go to your models</button> 
             </Link>
             :
             <button
