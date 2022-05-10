@@ -11,8 +11,8 @@ function Navbar() {
     return(
     <div className='navbar-items'>
         <div className='start'>
-            <p className='Bench'>Bench</p>
-            <p className='ML'>ML</p>
+            <Link className='Bench' to="/" style={{ textDecoration: 'none'}}>Bench</Link>
+            <Link className='ML' to="/" style={{ textDecoration: 'none'}}>ML</Link>
         </div>
         <div className='end'>
             <ul className='models-account'>
@@ -21,7 +21,7 @@ function Navbar() {
                 <Link className="nav-item-link" to="/mymodels" style={{ textDecoration: 'none'}}>My Models</Link>
                 </li>
                 <li className='nav-item'>
-                <Link className="nav-item-link" to="/" style={{ textDecoration: 'none'}}>My Account</Link>
+                <Link className="nav-item-link" to="/profile" style={{ textDecoration: 'none'}}>My Account</Link>
                 </li>
             </ul>
         </div>    
