@@ -15,9 +15,10 @@ class Optimize:
     def __init__(self, resources = {'cpu': 2, 'gpu' : 0}, model_type = None):
         self.resources = resources
         self.model_type = model_type
-        
+        self.optimizer = self.get_optimizer()
+
     def get_optimizer(self):
-        """Based on the model type in config, create a model for use with ray tune."""
+        """Based on the model type, create an optimizer model."""
         if self.model_type == 'keras':
             return KerasOptimizer()
         elif self.model_type == 'pytorch':
@@ -34,8 +35,8 @@ class Optimize:
             config: A JSON object containing the model arguments.
         '''
 
-        net = self.get_optimizer()  # Create model for that specific optimizer based on self.model_type
-        net.train(config)  # Train the model with the config for this current version
+        net = self.optimizer  # Create model for that specific optimizer based on self.model_type
+        net.train_tune(config)  # Train the model with the config for this current version
         print("Training completed for model")
 
     def run(self, url):

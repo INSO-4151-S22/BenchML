@@ -12,6 +12,8 @@ from ray.tune.integration.keras import TuneReportCallback
 from filelock import FileLock
 import os
 import ast
+import tensorflow as tf
+import tensorflow_datasets as tfds
 
 class KerasOptimizer():
 
@@ -48,15 +50,42 @@ class KerasOptimizer():
 
         return model
 
-    def train(self, config):
+    def load_data(self, data_dir="./data"):
+        """Loads cifar-10 dataset and divides them into train and test sets.
+        
+            Returns:
+                Train and test set for use with pytorch model.
+        """
         with FileLock(os.path.expanduser("~/.data.lock")):
-            (X_train, y_train), (X_test, y_test) = cifar10.load_data()
-        X_train = X_train.astype('float32') 
-        X_test = X_test.astype('float32') 
-        X_train = X_train / 255.0 
-        X_test = X_test / 255.0
-        y_train = np_utils.to_categorical(y_train) 
-        y_test = np_utils.to_categorical(y_test) 
+            (ds_train, ds_test), ds_info = tfds.load(
+                'cifar-10',
+                data_dir=data_dir,
+                split=['train', 'test'],
+                shuffle_files=True,
+                as_supervised=True,
+                with_info=True,
+            )
+
+        def normalize_img(image, label):
+            """Normalizes images: `uint8` -> `float32`."""
+            return tf.cast(image, tf.float32) / 255., label
+
+        ds_train = ds_train.map(
+            normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+        ds_train = ds_train.cache()
+        ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
+
+        ds_test = ds_test.map(
+            normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+        ds_test = ds_test.cache()
+        ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
+
+
+        return ds_train, ds_test
+
+    def train_tune(self, config):
+        
+        ds_train, ds_test = self.load_data()
 
         model: Sequential = self.create_model(config)
 
@@ -65,5 +94,29 @@ class KerasOptimizer():
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['loss', 'accuracy'])
 
         # Report loss and accuracy to ray tune
-        model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=100, batch_size=config['batch_size'], 
+        model.fit(ds_train, validation_data=ds_test, epochs=50, batch_size=config['batch_size'], 
             callbacks=[TuneReportCallback({"mean_accuracy": "accuracy"})],) 
+
+    def train(self, config):
+        """
+        Gets a model and trains it using Keras and the CIFAR10 dataset.
+
+        Args:
+            model: A Keras model to be trained.
+
+        Returns:
+            Trained model.
+        """
+
+        ds_train, ds_test = self.load_data()
+
+        model: Sequential = self.create_model(config)
+
+        decay = 0.01/100 
+        sgd = gradient_descent_v2.SGD(lr=0.01, momentum=0.9, decay=decay) 
+        model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['loss', 'accuracy'])
+
+        # Report loss and accuracy to ray tune
+        model.fit(ds_train, validation_data=ds_test, epochs=50, batch_size=16) 
+
+        return model
