@@ -12,6 +12,8 @@ const providerConfig = {
   clientId: config.clientId,
   audience: config.audience,
   redirectUri: window.location.origin,
+  useRefreshTokens:true,
+  cacheLocation:"localstorage"
 };
 
 ReactDOM.render(
