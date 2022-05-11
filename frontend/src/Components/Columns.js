@@ -8,8 +8,8 @@ export const COLUMNS = [
         accessor: 'date'
     },
     {
-        Header: 'Description',
-        accessor: 'description'
+        Header: 'Model Source',
+        accessor: 'model_source'
     }
    
 
