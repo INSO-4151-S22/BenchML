@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { BasicTable } from "../Components/MyModelsTable";
-import configJson from '../auth_config.json'
+import configJson from '../auth_config.json';
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import Modal from '../Components/Modal';
@@ -18,14 +18,14 @@ function MyModels() {
         isRendered=true;
         const getModels = async () => {
             const t = await getAccessTokenSilently();
-            console.log(t);
+            // console.log(t);
             axios.get(baseURL+"/models",{ headers: { 'Authorization': `Bearer ${t}`}}).then((response) => {
                 if (isRendered) {
                     setModels(response.data);
                     
                 }
                 return null;
-            }).catch(err => console.log(err));
+            }).catch(err => console.log(err.toJSON()));
             return () => {
                 isRendered = false;
             }; 

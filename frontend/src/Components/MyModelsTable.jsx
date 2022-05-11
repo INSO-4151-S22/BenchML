@@ -10,7 +10,7 @@ export function BasicTable(props) {
     const modelDisplay = [];
     
     for (var i=0; i < props.models.length; i++){
-        modelDisplay.push({"name":props.models[i].name, "date" : props.models[i].uploaded_at,"description":props.models[i].source});
+        modelDisplay.push({"name":props.models[i].name, "date" : props.models[i].uploaded_at,"model_source":props.models[i].source});
     }
 
     
