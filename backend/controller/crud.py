@@ -96,7 +96,7 @@ def create_organization(db: Session, organization: schemas.OrganizationCreate, u
 def __get_user_models(db: Session, user: schemas.User):
     m_organizations = db.query(models.UserOrganizations).filter(models.UserOrganizations.email == user.email).filter(
         models.UserOrganizations.accepted == True).join(models.Model, models.Model.oid == models.UserOrganizations.oid).with_entities(models.Model)
-    m = db.query(models.Model).join(models.User, models.User.email == user.email).filter(
+    m = db.query(models.Model).join(models.User, models.User.uid == models.Model.uid).filter(models.User.email == user.email).filter(
         models.Model.oid.is_(None)).with_entities(models.Model)
     return m.union(m_organizations)
 
