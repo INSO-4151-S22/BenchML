@@ -28,7 +28,7 @@ function MyModels() {
                     
                 }
                 return null;
-            }).catch(err => console.log(err));
+            }).catch(err => console.log(err.toJSON()));
             return () => {
                 isRendered = false;
             }; 
