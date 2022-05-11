@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useTable } from 'react-table'
 import { COLUMNS } from './Columns'
 import '../css/MyModelsTable.min.css'
@@ -8,6 +8,7 @@ import '../css/MyModelsTable.min.css'
 export function BasicTable(props) {
     
     const modelDisplay = [];
+    
     for (var i=0; i < props.models.length; i++){
         modelDisplay.push({"name":props.models[i].name, "date" : props.models[i].uploaded_at,"description":props.models[i].source});
     }
@@ -15,6 +16,11 @@ export function BasicTable(props) {
     
     const columns = useMemo(() => COLUMNS, [])
     const data = useMemo(() => modelDisplay, []);
+    const [resultsModal, setResultsModal] = useState(false);
+
+    const toggleResults = () => {
+        setResultsModal(!resultsModal)
+    }
 
     const tableInstance = useTable({
         columns,
@@ -29,8 +35,32 @@ export function BasicTable(props) {
          prepareRow,
     } = tableInstance
 
+  
+
     return (
-        <table {...getTableProps()}>
+        <div>
+            {
+                resultsModal && (
+                         <div className="modal">
+            <div className="overlay">
+            <div className = "modal-content">
+                {/* <div className="elements-container"> */}
+                <button className="close-results"
+                        onClick={toggleResults}>
+                        Cancel
+                        </button>
+                        <form >
+                      TEXT
+                        
+                    </form>
+                  
+                    
+                </div>
+            </div>
+            </div>
+                )
+            }
+            <table {...getTableProps()}>
             <thead>
                 {
                     headerGroups.map((headerGroup) => (
@@ -49,7 +79,7 @@ export function BasicTable(props) {
                 {rows.map(row => {
                 prepareRow(row)
                 return (
-                    <tr {...row.getRowProps()}>
+                    <tr onClick={toggleResults} {...row.getRowProps()}>
                     {row.cells.map(cell => {
                         return (
                         <td
@@ -63,6 +93,8 @@ export function BasicTable(props) {
                 )
                 })}
             </tbody>
-        </table>
+            </table>
+        </div>
+        
     )
 }

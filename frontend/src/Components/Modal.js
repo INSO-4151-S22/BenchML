@@ -84,13 +84,7 @@ export default function Modal() {
         postModel();
       }
 
-    
 
-    if(modal) {
-        document.body.classList.add('active-modal')
-    } else {
-        document.body.classList.remove('active-modal')
-    }
     return (
         <>
         <Toaster/>
@@ -114,7 +108,7 @@ export default function Modal() {
                                 onChange={handleChange}
                             />
                         </label> 
-                        <label> Git Repository URL
+                        <label> Model JSON URL
                             <input 
                                 type="url"
                                 name="repourl"

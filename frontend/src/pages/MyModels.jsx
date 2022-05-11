@@ -1,12 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react'
-import Navbar from "../Components/Navbar/Navbar";
+import React, { useEffect, useState, useRef } from 'react';
 import { BasicTable } from "../Components/MyModelsTable";
 import configJson from '../auth_config.json'
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import Modal from '../Components/Modal';
-
-
 
 const baseURL = configJson.baseUrl; 
 
@@ -38,10 +35,12 @@ function MyModels() {
     }, []);
 
     return (
-        <div className="App">
+        <div>
         <h1>My Models</h1>
         <Modal />
-        {Models ? <BasicTable models={ Models }/> : null }
+        <div className='table-container'>
+            {Models ? <BasicTable models={ Models }/> : null }
+        </div>
       </div>
     );
 }
