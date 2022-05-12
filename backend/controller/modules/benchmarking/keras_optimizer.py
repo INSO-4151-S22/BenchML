@@ -43,7 +43,6 @@ class KerasOptimizer():
                     else:
                         layer_args[keyword_name] = layer[i+1]
                 layer_ = getattr(layers, layer[0])  # Create layer from string
-                print(layer_, layer_args)
                 model.add(layer_(**layer_args))  # Create the instance from keyword arguments and save it in the layer list
         except:
             raise ArgumentTypeError("Some layers are incompatible with the optimization model creation for this current version.")
