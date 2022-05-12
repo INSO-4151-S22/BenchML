@@ -142,7 +142,7 @@ class PyTorchOptimizer():
                 num_workers=8
             )
 
-        for epoch in range(10):  # loop over the dataset multiple times
+        for epoch in range(5):  # loop over the dataset multiple times
             running_loss = 0.0
             epoch_steps = 0
             for i, data in enumerate(trainloader, 0):
@@ -234,7 +234,7 @@ class PyTorchOptimizer():
                 num_workers=8
             )
 
-        for epoch in range(10):  # loop over the dataset multiple times
+        for epoch in range(5):  # loop over the dataset multiple times
             running_loss = 0.0
             epoch_steps = 0
             for i, data in enumerate(trainloader, 0):

@@ -24,7 +24,7 @@ class KerasOptimizer():
         """Creates a keras model based on given structure with the usage of config values in hyperparameters."""
 
         model = Sequential()
-        
+
         try:
             # Define layers based on init args
             for layer in layers:
@@ -94,7 +94,7 @@ class KerasOptimizer():
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['loss', 'accuracy'])
 
         # Report loss and accuracy to ray tune
-        model.fit(ds_train, validation_data=ds_test, epochs=50, batch_size=config['batch_size'], 
+        model.fit(ds_train, validation_data=ds_test, epochs=5, batch_size=config['batch_size'], 
             callbacks=[TuneReportCallback({"mean_accuracy": "accuracy"})],) 
 
     def train(self, config):
@@ -117,6 +117,6 @@ class KerasOptimizer():
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['loss', 'accuracy'])
 
         # Report loss and accuracy to ray tune
-        model.fit(ds_train, validation_data=ds_test, epochs=50, batch_size=16) 
+        model.fit(ds_train, validation_data=ds_test, epochs=5, batch_size=16) 
 
         return model

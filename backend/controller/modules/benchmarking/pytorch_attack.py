@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class PyTorchAttack():
-    
+
     def __init__(self, model):
         self.model = model
         self.attack_name = "FGSM"
@@ -30,7 +30,7 @@ class PyTorchAttack():
 
         x_adv.grad.sign_()
         x_adv = x_adv - 8.0*x_adv.grad
-        x_adv = torch.clamp(x_adv,*self.clamp)
+        x_adv = torch.clamp(x_adv,*(0,1))
 
         return x_adv
     
