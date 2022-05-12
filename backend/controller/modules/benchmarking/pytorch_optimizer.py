@@ -42,18 +42,17 @@ class PyTorchOptimizer():
 
             class Net(nn.Module):
                 
-                def __init__(self, layers, config):
+                def __init__(self, config):
                     super().__init__()
                     # Define layers based on init Args
                     self.model = nn.ModuleList()
                     try:
-                        for layer in layers:
-                            print(f"layer: {layer}")
+                        for layer in config['layers']:
                             module_ = None
                             if len(layer) > 0:  # Modules that are part of the torch nn import
                                 layer_args = []
                                 for i in range(1, len(layer)):
-                                    if isinstance(layer[i], str) and config[layer[i]]:
+                                    if isinstance(layer[i], str) and layer[i] in config.keys():
                                         layer_args.append(config[layer[i]])  # Applies a config value to it if available
                                     else:
                                         layer_args.append(layer[i])
@@ -71,7 +70,7 @@ class PyTorchOptimizer():
                         x = fun(x)
                     return x
 
-            return Net(config["layers"], config)
+            return Net(config)
 
 
     def load_data(self, data_dir="./data"):

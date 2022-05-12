@@ -24,16 +24,15 @@ class KerasOptimizer():
         """Creates a keras model based on given structure with the usage of config values in hyperparameters."""
 
         model = Sequential()
-
         try:
             # Define layers based on init args
-            for layer in layers:
+            for layer in config["layers"]:
                 layer_args = {}
                 keyword_name = ''
-                
-                for i in range(1, len(layer-1), 2):
+
+                for i in range(1, len(layer)-1, 2):
                     keyword_name = layer[i]  # First is the keyword name and then the value for it
-                    if isinstance(layer[i+1], str) and config[layer[i+1]]:
+                    if isinstance(layer[i+1], str) and layer[i+1] in config.keys():
                         layer_args[keyword_name] = config[layer[i+1]]  # Applies a config value to it if available
                     elif isinstance(layer[i+1], str) and str(layer[i+1]).startswith("["):  # It is a list of values so evalulate and store in keyword
                         tup = ast.literal_eval(layer[i+1])  # Get list with values to turn into tuple
@@ -42,8 +41,9 @@ class KerasOptimizer():
                                 tup[i] = config[item]
                         layer_args[keyword_name] = tuple(tup)  # Store tuple in keyword_argument
                     else:
-                        layer_args[keyword_name] = layer[i]
+                        layer_args[keyword_name] = layer[i+1]
                 layer_ = getattr(layers, layer[0])  # Create layer from string
+                print(layer_)
                 model.add(layer_(**layer_args))  # Create the instance from keyword arguments and save it in the layer list
         except:
             raise ArgumentTypeError("Some layers are incompatible with the optimization model creation for this current version.")
@@ -56,32 +56,15 @@ class KerasOptimizer():
             Returns:
                 Train and test set for use with pytorch model.
         """
-        with FileLock(os.path.expanduser("~/.data.lock")):
-            (ds_train, ds_test), ds_info = tfds.load(
-                'cifar-10',
-                data_dir=data_dir,
-                split=['train', 'test'],
-                shuffle_files=True,
-                as_supervised=True,
-                with_info=True,
-            )
+        (X_train, y_train), (X_test, y_test) = cifar10.load_data()
+        X_train = X_train.astype('float32') 
+        X_test = X_test.astype('float32') 
+        X_train = X_train / 255.0 
+        X_test = X_test / 255.0
+        y_train = np_utils.to_categorical(y_train) 
+        y_test = np_utils.to_categorical(y_test) 
 
-        def normalize_img(image, label):
-            """Normalizes images: `uint8` -> `float32`."""
-            return tf.cast(image, tf.float32) / 255., label
-
-        ds_train = ds_train.map(
-            normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-        ds_train = ds_train.cache()
-        ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
-
-        ds_test = ds_test.map(
-            normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-        ds_test = ds_test.cache()
-        ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
-
-
-        return ds_train, ds_test
+        return (X_train, y_train), (X_test, y_test)
 
     def train_tune(self, config):
         
