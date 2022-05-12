@@ -2,19 +2,13 @@
 
 from argparse import ArgumentTypeError
 
-import keras
 from keras.models import Sequential
 from keras import layers
 from keras.datasets import cifar10
 from keras.utils import np_utils
 from keras.optimizers import gradient_descent_v2
-from ray.tune.integration.keras import TuneReportCallback
-from filelock import FileLock
-import os
-import ast
-import tensorflow as tf
-import tensorflow_datasets as tfds
 
+from ray import tune
 class KerasOptimizer():
 
     def __init__(self):
@@ -68,17 +62,17 @@ class KerasOptimizer():
     def train_tune(self, config):
         
         ds_train, ds_test = self.load_data()
-        print("trying to create model")
+
         model: Sequential = self.create_model(config)
-        print("created")
 
         decay = config["lr"]/100 
         sgd = gradient_descent_v2.SGD(learning_rate=config["lr"], momentum=0.9, decay=decay) 
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         # Report loss and accuracy to ray tune
-        model.fit(*ds_train, validation_data=ds_test, epochs=5, batch_size=config['batch_size'], 
-            callbacks=[TuneReportCallback({"mean_accuracy": "accuracy"})],) 
+        hist = model.fit(*ds_train, validation_data=ds_test, epochs=40, batch_size=config['batch_size'])
+
+        tune.report(loss=(hist.history["val_loss"][-1]), accuracy=hist.history["val_accuracy"][-1]) 
 
     def train(self, config):
         """
@@ -100,6 +94,6 @@ class KerasOptimizer():
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         # Report loss and accuracy to ray tune
-        model.fit(ds_train, validation_data=ds_test, epochs=5, batch_size=16) 
+        model.fit(ds_train, validation_data=ds_test, epochs=40, batch_size=16) 
 
         return model
