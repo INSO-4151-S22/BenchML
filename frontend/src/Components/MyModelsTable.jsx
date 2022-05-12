@@ -42,22 +42,22 @@ export function BasicTable(props) {
             {
                 resultsModal && (
                          <div className="modal">
-            <div className="overlay">
-            <div className = "modal-content">
-                {/* <div className="elements-container"> */}
-                <button className="close-results"
-                        onClick={toggleResults}>
-                        Cancel
-                        </button>
-                        <form >
-                      TEXT
-                        
-                    </form>
-                  
-                    
-                </div>
-            </div>
-            </div>
+                            <div className="overlay">
+                            <div className = "modal-content">
+                                {/* <div className="elements-container"> */}
+                                <button className="close-results"
+                                        onClick={toggleResults}>
+                                        X
+                                        </button>
+                                        <form >
+                                    TEXT
+                                        
+                                    </form>
+                                
+                                    
+                                </div>
+                            </div>
+                        </div>
                 )
             }
             <table {...getTableProps()}>

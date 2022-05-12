@@ -26,11 +26,6 @@ export default function Modal() {
         setInputs(values => ({...values, [name]: value}));
       }
 
-    const onOptionClicked = value => () => {
-    setSelectedOption(value);
-    setIsOpen(false);
-    // console.log(selectedOption);
-    };
 
     const postModel = async() => {
       //  console.log(type);
