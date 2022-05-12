@@ -34,16 +34,16 @@ class KerasOptimizer():
                     keyword_name = layer[i]  # First is the keyword name and then the value for it
                     if isinstance(layer[i+1], str) and layer[i+1] in config.keys():
                         layer_args[keyword_name] = config[layer[i+1]]  # Applies a config value to it if available
-                    elif isinstance(layer[i+1], str) and str(layer[i+1]).startswith("["):  # It is a list of values so evalulate and store in keyword
-                        tup = ast.literal_eval(layer[i+1])  # Get list with values to turn into tuple
+                    elif isinstance(layer[i+1], list):  # It is a list of values so evalulate and store in keyword
+                        tup = layer[i+1]
                         for i, item in enumerate(tup):
-                            if isinstance(item, str) and config[item]:  # If string in config, then get original value
+                            if isinstance(item, str) and item in config.keys():  # If string in config, then get original value
                                 tup[i] = config[item]
                         layer_args[keyword_name] = tuple(tup)  # Store tuple in keyword_argument
                     else:
                         layer_args[keyword_name] = layer[i+1]
                 layer_ = getattr(layers, layer[0])  # Create layer from string
-                print(layer_)
+                print(layer_, layer_args)
                 model.add(layer_(**layer_args))  # Create the instance from keyword arguments and save it in the layer list
         except:
             raise ArgumentTypeError("Some layers are incompatible with the optimization model creation for this current version.")
@@ -61,23 +61,24 @@ class KerasOptimizer():
         X_test = X_test.astype('float32') 
         X_train = X_train / 255.0 
         X_test = X_test / 255.0
-        y_train = np_utils.to_categorical(y_train) 
-        y_test = np_utils.to_categorical(y_test) 
+        y_train = np_utils.to_categorical(y_train, num_classes=10) 
+        y_test = np_utils.to_categorical(y_test, num_classes=10) 
 
         return (X_train, y_train), (X_test, y_test)
 
     def train_tune(self, config):
         
         ds_train, ds_test = self.load_data()
-
+        print("trying to create model")
         model: Sequential = self.create_model(config)
+        print("created")
 
         decay = config["lr"]/100 
-        sgd = gradient_descent_v2.SGD(lr=config["lr"], momentum=0.9, decay=decay) 
-        model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['loss', 'accuracy'])
+        sgd = gradient_descent_v2.SGD(learning_rate=config["lr"], momentum=0.9, decay=decay) 
+        model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         # Report loss and accuracy to ray tune
-        model.fit(ds_train, validation_data=ds_test, epochs=5, batch_size=config['batch_size'], 
+        model.fit(*ds_train, validation_data=ds_test, epochs=5, batch_size=config['batch_size'], 
             callbacks=[TuneReportCallback({"mean_accuracy": "accuracy"})],) 
 
     def train(self, config):
@@ -96,8 +97,8 @@ class KerasOptimizer():
         model: Sequential = self.create_model(config)
 
         decay = 0.01/100 
-        sgd = gradient_descent_v2.SGD(lr=0.01, momentum=0.9, decay=decay) 
-        model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['loss', 'accuracy'])
+        sgd = gradient_descent_v2.SGD(learning_rate=0.01, momentum=0.9, decay=decay) 
+        model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         # Report loss and accuracy to ray tune
         model.fit(ds_train, validation_data=ds_test, epochs=5, batch_size=16) 
