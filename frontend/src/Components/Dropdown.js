@@ -4,7 +4,7 @@ import styled from 'styled-components';
 export default function Dropdown(props) {
 
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedOption, setSelectedOption] = useState(null);
+    const [selectedOption, setSelectedOption] = useState("keras");
     const toggling = () => setIsOpen(!isOpen);
     const options = ["keras", "pytorch"];
 

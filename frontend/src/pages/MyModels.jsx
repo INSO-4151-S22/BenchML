@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Navbar from "../Components/Navbar/Navbar";
-import { BasicTable } from "../Components/MyModelsTable";
+import {BasicTable} from "../Components/MyModelsTable"
 import configJson from '../auth_config.json';
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import Modal from '../Components/Modal';
-
 
 
 const baseURL = configJson.baseUrl; 
@@ -16,25 +14,34 @@ function MyModels() {
     const [hasPosted, setPosted] = useState(false);
     
 
+    const isRendered = useRef(false);
 
     useEffect(() => {
         const getModels = async () => {
             const t = await getAccessTokenSilently();
-            // console.log(t);
+            console.log(t);
             axios.get(baseURL+"/models",{ headers: { 'Authorization': `Bearer ${t}`}}).then((response) => {
-                setModels(response.data);
-                // console.log(response);
+                if (isRendered) {
+                    setModels(response.data);
+                    console.log("Here" + response.data)
+                }
+                return null;
             }).catch(err => console.log(err));
+            return () => {
+                isRendered = false;
+            }; 
         }
         getModels();
         setPosted(false);
     }, [hasPosted]);
 
     return (
-        <div className="App">
+        <div>
         <h1>My Models</h1>
         <Modal emptyModels={setModels} setPosted={setPosted}/>
-        {Models ? <BasicTable models={ Models }/> : null }
+        <div className='table-container'>
+            {Models ? <BasicTable models={ Models } /> : null }
+        </div>
       </div>
     );
 }

@@ -32,11 +32,6 @@ export default function Modal(props) {
         setInputs(values => ({...values, [name]: value}));
       }
 
-    const onOptionClicked = value => () => {
-    setSelectedOption(value);
-    setIsOpen(false);
-    // console.log(selectedOption);
-    };
 
     const postModel = async() => {
         const t = await getAccessTokenSilently();
@@ -92,7 +87,6 @@ export default function Modal(props) {
         props.emptyModels(null);
       }
 
-    
     return (
         <>
         <Toaster/>
@@ -116,7 +110,7 @@ export default function Modal(props) {
                                 onChange={handleChange}
                             />
                         </label> 
-                        <label> Git Repository URL
+                        <label> Model JSON URL
                             <input 
                                 type="url"
                                 name="repourl"

@@ -1,36 +1,133 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useTable } from 'react-table'
 import { COLUMNS } from './Columns'
-import '../css/MyModelsTable.min.css'
+import { useAuth0 } from "@auth0/auth0-react";
+import axios from 'axios';
+import '../css/ModelsTable.min.css'
+import "../css/Results.min.css"
+import configJson from '../auth_config.json';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 
+
+const baseURL = configJson.baseUrl; 
 
 export function BasicTable(props) {
-    
-    const modelDisplay = [];
-    for (var i=0; i < props.models.length; i++){
-        modelDisplay.push({"name":props.models[i].name, "date" : props.models[i].uploaded_at,"model_source":props.models[i].source});
-    }
 
+    const { getAccessTokenSilently } = useAuth0(); 
+  
     
     const columns = useMemo(() => COLUMNS, [])
-    const data = useMemo(() => modelDisplay, [])
+    const data = useMemo(() => props.models, []);
+    const [resultsModal, setResultsModal] = useState(false);
+    const [status, setStatus] = useState({"info":"", "detail":"", "model_type":""});
 
+    const toggleResults = () => {
+        setResultsModal(!resultsModal)
+    }
+
+    const getModelResults = async (results) => {
+        const t = await getAccessTokenSilently();
+        axios.get(baseURL+`/models/${results.mid}/details`,{ headers: { 'Authorization': `Bearer ${t}`}})
+        .then((response) => {
+            setStatus({"name":results.name, "info":response.data[0].information, "detail":response.data[0].detail, "model_type":response.data[0].type})
+        })
+        .catch(err => console.log(err))
+        
+    }
+
+    const setModelResults = (row) => {
+        toggleResults();
+        getModelResults({'mid':row.original.mid, 'name':row.original.name, 'date':row.original.date, 'model_source':row.original.model_source});
+    }
+
+
+    const [val, setVal]= useState(parseJson())
+
+    function parseJson(){
+        try {
+          return JSON.stringify(JSON.parse(status.detail.replaceAll("\'", "\"").substring(1, status.detail.length - 1)).layers);
+        } catch(ex){
+          return "";
+        }
+    }
+    
     const tableInstance = useTable({
         columns,
         data
     })
 
     const { 
-        getTableProps, 
-        getTableBodyProps,
-         headerGroups, 
-         rows, 
-         prepareRow,
+        getTableProps, // table props from react-table
+        getTableBodyProps, // table body props from react-table
+         headerGroups, // headerGroups, if your table has groupings
+         rows, // rows for the table based on the data passed
+         prepareRow, // Prepare the row (this function needs to be called for each row before getting the row props)
     } = tableInstance
 
-    return (
-        <table {...getTableProps()}>
+
+    const [value, setValue] = React.useState('Controlled');
+    
+    const handleChange = (event) => {
+        setValue(event.target.value);
+    }
+
+    
+
+
+  
+    return      (
+        <div>
+            {
+                resultsModal && (
+                         <div className="results-modal">
+                            <div className="results-overlay">
+                                <div className = "results-content">
+                                <div className='results'>
+                                   <p className='title'> {`${status.name}`} </p>
+                                   
+                                   <p>Loss : </p>
+                                   
+                                   <p>Accuracy: </p>
+
+                                   <p>Best Trial: </p>
+
+                                   <CopyToClipboard
+                                    text="text"
+                                    onCopy={() => {
+                                        alert("Copied")
+                                    }}>
+                                    <span> <TextField
+                                    id="standard-multiline-flexible"
+                                    label="Results"
+                                    multiline
+                                    value={val}
+                                    
+                                    onChange={handleChange}
+                                    variant="standard"
+                                    /></span>
+                                    </CopyToClipboard>
+                                    {/* {`The info is: ${status.info}`}
+                                    {`The detail is: ${status.detail}`}
+                                    {`The eval type is: ${status.model_type}`} */}
+                                    </div>
+                                    <button className="close-results"
+                                        onClick={toggleResults}>
+                                        X
+                                    </button>
+                                   
+                                    <div className='best-trial'>
+
+                                    </div>
+                                </div>
+                  
+                            </div>
+                        </div>
+                )
+            }
+            <table   {...getTableProps()}>
             <thead>
                 {
                     headerGroups.map((headerGroup) => (
@@ -49,7 +146,7 @@ export function BasicTable(props) {
                 {rows.map(row => {
                 prepareRow(row)
                 return (
-                    <tr {...row.getRowProps()}>
+                    <tr onClick={() => setModelResults(row)} {...row.getRowProps()}>
                     {row.cells.map(cell => {
                         return (
                         <td
@@ -61,8 +158,11 @@ export function BasicTable(props) {
                     })}
                     </tr>
                 )
-                })}
+               })}
             </tbody>
-        </table>
+
+            </table>
+        </div>
+        
     )
 }
