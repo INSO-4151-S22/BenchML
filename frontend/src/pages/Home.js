@@ -20,10 +20,13 @@ function Home() {
                 <button className="start-here">Start Here</button> 
             </Link>
             :
-            <button
-            className="start-here" onClick={() => loginWithRedirect()}>
-            Start here
-            </button>
+            <div  className="start-here">
+                <button
+                onClick={() => loginWithRedirect()}>
+                <p>Start here</p>
+                </button>
+            </div>
+            
             }
         </div>
     );

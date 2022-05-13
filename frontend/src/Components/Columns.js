@@ -4,12 +4,16 @@ export const COLUMNS = [
         accessor: 'name'
     },
     {
+        Header: 'Type',
+        accessor: 'type'
+    },
+    {
         Header: 'Date',
-        accessor: 'date'
+        accessor: 'uploaded_at'
     },
     {
         Header: 'Model Source',
-        accessor: 'model_source'
+        accessor: 'source'
     }
    
 

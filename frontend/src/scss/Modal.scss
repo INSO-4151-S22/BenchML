@@ -5,10 +5,10 @@ body.active-modal {
 .btn-modal {
     padding: 8px 13px;
     display: block;
-    margin-top: 0;
+   // margin-top: 0;
     margin-bottom: 1%;
     margin-left: auto;
-    margin-right: 1%;
+    margin-right: 5%;
     font-size: 18px;
     border-style: solid;
     border-radius: 5px;
@@ -29,10 +29,10 @@ body.active-modal {
     position: fixed;
 }
 
-.overlay {
+.overlay{
     background: rgba(49,49,49,0.8);
 }
-.modal-content {
+.modal-content, .results-content {
     position: absolute;
     top: 40%;
     left: 50%;

@@ -1,4 +1,5 @@
-.navbar-items {
+
+.navbar {
     background-color: #1E2019;
     height: 50px;
     width: 100%;
@@ -6,13 +7,19 @@
     flex-direction: row;
     justify-content: space-between;
     font-size: 1rem;
+
     
     .start {
         display: flex;
         flex-direction: row;
-        padding-left: 1%;
         text-decoration: none;
         font-size: 1.25rem;
+        line-height: 50px;
+        margin-left: 1rem;
+    }
+
+    .start:hover {
+        text-decoration: underline;
     }
 
     .Bench {
@@ -27,18 +34,19 @@
     }
 
     .end {
-        padding-right: 1%;
         .models-account {
             display: flex;
             flex-direction: row;
             list-style: none;
 
             .nav-item {
-                padding-left: 3%;
-                inline-size: 6rem;
+                margin-right: 1rem;
                 .nav-item-link{
-                    color: #FFFF
+                color: #FFFF
                 }
+            }
+            .nav-item:hover {
+            text-decoration: underline;
             }
         }
     }

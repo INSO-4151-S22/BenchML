@@ -1,8 +1,11 @@
 .container {
-    position: flex;
+    display: flex;
     flex-direction: column;
-    display: block;
-    height: 200px;
+    align-items: center;
+    // position: flex;
+    // flex-direction: column;
+    // width: 50%;
+   // display: block;
 
     .intro {
         inline-size: 30rem;
@@ -28,5 +31,6 @@
         color: #f1f1f1;
         font-weight: 600;
         letter-spacing: -1px;
+        
     }
 }

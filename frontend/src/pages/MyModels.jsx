@@ -5,6 +5,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import Modal from '../Components/Modal';
 
+
 const baseURL = configJson.baseUrl; 
 
 function MyModels() {
@@ -22,10 +23,10 @@ function MyModels() {
             axios.get(baseURL+"/models",{ headers: { 'Authorization': `Bearer ${t}`}}).then((response) => {
                 if (isRendered) {
                     setModels(response.data);
-                    
+                    console.log(response.data)
                 }
                 return null;
-            }).catch(err => console.log(err.toJSON()));
+            }).catch(err => console.log(err));
             return () => {
                 isRendered = false;
             }; 
@@ -39,7 +40,8 @@ function MyModels() {
         <h1>My Models</h1>
         <Modal />
         <div className='table-container'>
-            {Models ? <BasicTable models={ Models }/> : null }
+            {Models ? <BasicTable models={ Models } /> : null }
+      
         </div>
       </div>
     );
