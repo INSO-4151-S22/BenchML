@@ -111,12 +111,12 @@ class Optimize:
             if k == 'model_type' or k == 'layers':
                 pass
             elif k == 'lr':
-                if parsed_config[k] and len(parsed_config[k]) == 0:
+                if len(parsed_config[k]) == 0:
                     parsed_config[k] = learning_rate
                 else:
                     parsed_config[k] = float(parsed_config[k])
             elif k == 'batch_size':
-                if parsed_config[k] and len(parsed_config[k]) == 0:
+                if len(parsed_config[k]) == 0:
                     parsed_config[k] = batch_size
                 else:
                     parsed_config[k] = int(parsed_config[k])
