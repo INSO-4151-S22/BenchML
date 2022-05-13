@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from database import schemas, models
 import pytz
 from datetime import datetime
-from controller.tasks import optimize_model
+from controller.tasks import optimize_model, adversarial_attack_model
 from sqlalchemy import inspect
 import pickle
 import json
@@ -126,8 +126,6 @@ def get_model_status_by_model_id(db: Session, model_id: int, user: schemas.User)
 
 
 def create_model(db: Session, model: schemas.ModelCreate, user: schemas.User):
-    # TODO: once auth is creates, uid should contain the actual user id
-    # 1. create model
     current_datetime = get_datetime_now()
     db_model = models.Model(name=model.name, source=model.source, oid=model.oid,
                             uploaded_at=current_datetime, uid=user.uid, type=model.type)
@@ -140,6 +138,13 @@ def create_model(db: Session, model: schemas.ModelCreate, user: schemas.User):
         model_task = schemas.ModelTaskCreate(
             tid=om.task_id, mid=db_model.mid, type="optimizer", queue="celery")
         __create_model_task(db, model_task, user)
+
+    if 'adversarial' in model.modules:
+        aam = adversarial_attack_model.delay(model.source, model.type)
+        model_task = schemas.ModelTaskCreate(
+            tid=aam.task_id, mid=db_model.mid, type="adversarial", queue="celery")
+        __create_model_task(db, model_task, user)
+
     return db_model
 
 
@@ -174,7 +179,7 @@ def __get_celery_taskmeta_by_task_id(db: Session, celery_taskmeta_task_id: int, 
 
 
 def __get_model_tasks_by_model_id(db: Session, model_id: int, user: schemas.User, type=None):
-    if type in ['optimizer']:
+    if type in ['optimizer', 'adversarial']:
         return db.query(models.ModelTask).filter(models.ModelTask.mid == model_id, models.ModelTask.type == type).first()
     else:
         return db.query(models.ModelTask).filter(models.ModelTask.mid == model_id).all()
@@ -190,6 +195,28 @@ def __create_model_task(db: Session, model: schemas.ModelTaskCreate, user: schem
     return db_model_task
 
 
+def __extract_model_task(db: Session, model_id: int, user: schemas.User, task_id: int, module_evaluation: str):
+    taskmeta = __get_celery_taskmeta_by_task_id(db, task_id, user)
+    # Store model results if has not started due to error or has finished with failure or success
+    if not taskmeta:
+        # This will get called in the case of Celery being down. Return in order to allow for later processing.
+        return
+    elif taskmeta.status == 'FAILURE':
+        model_results = schemas.ModelResultsCreate(
+            type=module_evaluation, information='Error', detail=f"There was an error performing {module_evaluation} module on your model. Please make sure to follow the guidelines.", mid=model_id)
+        __create_model_results(db, model_results, user)
+
+    elif taskmeta.status == 'SUCCESS':
+        data = __object_as_dict(taskmeta)
+        try:
+            res = pickle.loads(data['result'])
+            for k in res:
+                model_results = schemas.ModelResultsCreate(type=module_evaluation, information=str(k), detail=json.dumps(res[k]), mid=model_id)
+                __create_model_results(db, model_results, user)
+        except Exception as e:
+            return None
+
+
 #
 # -- Helper Funcions --
 #
@@ -200,34 +227,16 @@ def __object_as_dict(obj):
 
 # Check if the celery task has finished or failed and fetch that data (if not done previously)
 def __verify_model_tasks(db: Session, model_id: int, user: schemas.User):
-    # Optimization
-    # prevent results to be stored twice into db
-    od = get_model_results_by_model_id(
-        db, model_id, user, type='optimizer', mode="internal")
+    # verify if results were already generated, meaning that this function was already called for this model
+    od = get_model_results_by_model_id(db, model_id, user, type='optimizer', mode="internal")
+    adv = get_model_results_by_model_id(db, model_id, user, type='adversarial', mode="internal")
 
-    if not od:
-        model_tasks = __get_model_tasks_by_model_id(
-            db, model_id, user, 'optimizer')
-        taskmeta = __get_celery_taskmeta_by_task_id(db, model_tasks.tid, user)
-        # Store model results if has not started due to error or has finished with failure or success
-        if not taskmeta:
-            # In the case of Celery being down, this will get called. Return in order to allow for later processing.
-            return
-            # optimization = schemas.ModelResultsCreate(
-            #     type='optimizer', information='Error', detail='There was an error creating a task for optimizing your model. Please make sure to follow the guidelines.', mid=model_id)
-            # __create_model_results(db, optimization, user)
-        elif taskmeta.status == 'FAILURE':
-            optimization = schemas.ModelResultsCreate(
-                type='optimizer', information='Error', detail='There was an error optimizing your model. Please make sure to follow the guidelines.', mid=model_id)
-            __create_model_results(db, optimization, user)
+    # if it was not executed prev, get the tasks created for the model
+    od_model_tasks = __get_model_tasks_by_model_id(db, model_id, user, 'optimizer') if not od else None   
+    adv_model_tasks = __get_model_tasks_by_model_id(db, model_id, user, 'adversarial') if not adv else None
 
-        elif taskmeta.status == 'SUCCESS':
-            data = __object_as_dict(taskmeta)
-            try:
-                res = pickle.loads(data['result'])
-                for k in res:
-                    optimization = schemas.ModelResultsCreate(type='optimizer', information=str(k), detail=json.dumps(res[k]),
-                                                              mid=model_id)
-                    __create_model_results(db, optimization, user)
-            except Exception as e:
-                return None
+    # use the tasks obtained to extract the data from celery's tables
+    if(od_model_tasks):
+        __extract_model_task(db, model_id, user, od_model_tasks.tid, 'optimizer')
+    if(adv_model_tasks):
+        __extract_model_task(db, model_id, user, adv_model_tasks.tid, 'adversarial')
