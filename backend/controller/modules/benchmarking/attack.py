@@ -1,6 +1,6 @@
-from backend.controller.modules.benchmarking.optimize import Optimize
-from backend.controller.modules.benchmarking.pytorch_attack import PyTorchAttack
-from backend.controller.modules.benchmarking.keras_attack import KerasAttack
+from controller.modules.benchmarking.optimize import Optimize
+from controller.modules.benchmarking.pytorch_attack import PyTorchAttack
+from controller.modules.benchmarking.keras_attack import KerasAttack
 import torch
 import torch.utils.data
 class Attack():
