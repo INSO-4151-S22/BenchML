@@ -1,6 +1,6 @@
-from backend.controller.modules.benchmarking.optimize import Optimize
-from backend.controller.modules.benchmarking.pytorch_attack import PyTorchAttack
-from backend.controller.modules.benchmarking.keras_attack import KerasAttack
+from controller.modules.benchmarking.optimize import Optimize
+from controller.modules.benchmarking.pytorch_attack import PyTorchAttack
+from controller.modules.benchmarking.keras_attack import KerasAttack
 import torch
 import torch.utils.data
 class Attack():
@@ -54,8 +54,7 @@ class Attack():
         testloader = torch.utils.data.DataLoader(
             dstest,
             batch_size=int(16),
-            shuffle=True,
-            num_workers=8
+            shuffle=True
         )
         for i, (x,y) in enumerate(testloader):
             x, y = x.to(self.device), y.to(self.device)
@@ -65,7 +64,7 @@ class Attack():
             acc += self._accuracy(logits, y)
             adv_acc += self._accuracy(adv_logits, y)
 
-        return acc/(i+1), adv_acc/(i+1)
+        return {'accuracy':str(acc/(i+1)), 'adversarial_accuracy':str(adv_acc/(i+1))}
 
     def eval_keras_model(self, X_train, y_train, X_test, y_test):
 
@@ -75,4 +74,4 @@ class Attack():
         x_adversarial_test, y_adversarial_test = next(self.attacker.generate_adversarials(10000, X_test, y_test))
         # Evaluate against adversarial samples
         adv_acc = self.model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0) 
-        return acc, adv_acc
+        return {'accuracy':str(acc), 'adversarial_accuracy':str(adv_acc)}
