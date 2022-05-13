@@ -37,7 +37,7 @@ function Navbar() {
     );}
     else{
         return(
-            <div className='navbar-items'>
+            <div className='navbar'>
                 <div className='start'>
                     <Link className='Bench' to="/" style={{ textDecoration: 'none'}}>Bench</Link>
                     <Link className='ML' to="/" style={{ textDecoration: 'none'}}>ML</Link>
