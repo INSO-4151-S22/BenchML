@@ -4,6 +4,7 @@ import configJson from '../auth_config.json';
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import Modal from '../Components/Modal';
+import Box from '@mui/material/Box';
 
 
 const baseURL = configJson.baseUrl; 
