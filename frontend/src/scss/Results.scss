@@ -1,0 +1,46 @@
+.results-modal {
+    width: 100%;
+    height: 100%;
+    
+}
+
+.results-overlay {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: fixed;
+}
+
+.results-overlay{
+    background: rgba(49,49,49,0.8);
+}
+
+.results-content {
+    top: 50%;
+    position: fixed;
+    display: flex;
+    height: 100%;
+    width: 100%;
+    max-width: 75%;
+    max-height: 75%;
+    resize: horizontal;
+    overflow: auto;
+
+    .results {
+        width: 100%;
+        font-size: 1.25rem;
+    }
+        .title {
+            font-size: 1.75rem;
+        }
+        
+}
+
+.close-results {
+    max-height: 20px;
+    max-width: 25px;
+}
+
