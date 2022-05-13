@@ -36,6 +36,7 @@ class KerasOptimizer():
                         layer_args[keyword_name] = tuple(tup)  # Store tuple in keyword_argument
                     else:
                         layer_args[keyword_name] = layer[i+1]
+                
                 layer_ = getattr(layers, layer[0])  # Create layer from string
                 model.add(layer_(**layer_args))  # Create the instance from keyword arguments and save it in the layer list
         except:
@@ -70,7 +71,7 @@ class KerasOptimizer():
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         # Report loss and accuracy to ray tune
-        hist = model.fit(*ds_train, validation_data=ds_test, epochs=40, batch_size=config['batch_size'])
+        hist = model.fit(*ds_train, validation_data=ds_test, epochs=50, batch_size=config['batch_size'])
 
         tune.report(loss=(hist.history["val_loss"][-1]), accuracy=hist.history["val_accuracy"][-1]) 
 
@@ -94,6 +95,6 @@ class KerasOptimizer():
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         # Report loss and accuracy to ray tune
-        model.fit(ds_train, validation_data=ds_test, epochs=40, batch_size=16) 
+        model.fit(*ds_train, validation_data=ds_test, epochs=40, batch_size=16) 
 
         return model

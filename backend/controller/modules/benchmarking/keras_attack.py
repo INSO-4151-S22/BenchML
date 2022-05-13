@@ -1,43 +1,51 @@
-import torch
-import torch.nn.functional as F
-
+import tensorflow as tf
+import numpy as np
+import random
 
 class KerasAttack():
 
-    def __init__(self, model, target=None):
-        self.target = target
+    def __init__(self, model, ds_train, ds_test):
         self.model = model
-        self.attack_steps = 7
-        self.attack_lr = 2.0
+        (self.X_train, self.y_train), (self.X_test, self.y_test) = (ds_train, ds_test)
 
-    def forward(self, x, y):
-        """
-        :param x: Inputs to perturb
-        :param y: Ground-truth label
-        :param target : Target label 
-        :return adversarial image
-        """
-        x_adv = x.detach().clone()
+    
+    def adversarial_pattern(self, image, label):
+        image = tf.cast(image, tf.float32)
+        
+        with tf.GradientTape() as tape:
+            tape.watch(image)
+            prediction = self.model(image)
+            loss = tf.keras.losses.MSE(label, prediction)
+        
+        gradient = tape.gradient(loss, image)
+        
+        signed_grad = tf.sign(gradient)
+        
+        return signed_grad
 
-        for _ in range(self.attack_steps):
-            x_adv.requires_grad = True
-            self.model.zero_grad()
-            logits = self.model(x_adv)
-            if self.target is None:
-                # Untargetted attack
-                loss = F.cross_entropy(logits, y,  reduction="sum")
-                loss.backward()                      
-                grad = x_adv.grad.detach()
-                grad = grad.sign()
-                x_adv = x_adv + self.attack_lr * grad
 
-            # Projection
-            x_adv = x + torch.clamp(x_adv - x, min=-8.0, max=8.0)
-            x_adv = x_adv.detach()
-            x_adv = torch.clamp(x_adv, 0, 1)
+    def generate_adversarials(self, batch_size, X_train, Y_train):
+        while True:
+            x = []
+            y = []
+            for batch in range(batch_size):
+                N = random.randint(0, 100)
 
-        return x_adv
-
-    def __call__(self, x, y):
-        x_adv = self.forward(x,y)
-        return x_adv
+                label = Y_train[N]
+                image = X_train[N]
+                
+                perturbations = self.adversarial_pattern(image.reshape((1, 32, 32, 3)), label).numpy()
+                
+                
+                epsilon = 0.1
+                adversarial = image + perturbations * epsilon
+                
+                x.append(adversarial)
+                y.append(Y_train[N])
+            
+            
+            x = np.asarray(x).reshape((batch_size, 32, 32, 3))
+            y = np.asarray(y)
+            
+            yield x, y
+    

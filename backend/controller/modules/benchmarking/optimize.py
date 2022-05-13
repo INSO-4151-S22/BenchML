@@ -6,13 +6,14 @@ from ray.tune.schedulers import ASHAScheduler
 import requests
 import json
 
-from backend.controller.modules.benchmarking.keras_optimizer import KerasOptimizer
-from backend.controller.modules.benchmarking.pytorch_optimizer import PyTorchOptimizer
+from controller.modules.benchmarking.keras_optimizer import KerasOptimizer
+from controller.modules.benchmarking.pytorch_optimizer import PyTorchOptimizer
 import ast 
+from ray.tune import CLIReporter
 
 class Optimize:
 
-    def __init__(self, resources = {'cpu': 2, 'gpu' : 0}, model_type = None):
+    def __init__(self, resources = {'cpu': 8, 'gpu' : 1}, model_type = None):
         self.resources = resources
         self.model_type = model_type
         self.optimizer = self.get_optimizer()
@@ -58,16 +59,16 @@ class Optimize:
                 grace_period=1,
                 reduction_factor=2
             )
-        
+        reporter = CLIReporter(metric_columns=["loss", "accuracy"])
+
         result = tune.run(
             tune.with_parameters(self.train),
             resources_per_trial={"cpu": self.resources['cpu'], "gpu": self.resources['gpu']}, # For Google Colab Environment
             config=config,
-            metric="mean_accuracy",
             mode="max",
-            num_samples=10,
+            num_samples=5,
             scheduler=scheduler,
-            stop={"mean_accuracy": 0.99}
+            progress_reporter=reporter
         )
 
         best_trial = result.get_best_trial("loss", "min", "last")
