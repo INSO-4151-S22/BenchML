@@ -36,9 +36,8 @@ export function BasicTable(props) {
             if("adversarial" === response.data[0].type){
                 setStatus({"name":results.name, "original_accuracy":response.data[0].detail, "adversarial_accuracy":response.data[1].detail, "model_type":response.data[0].type})
             }
-            else{
+            else {
                 setStatus({"name":results.name, "best_config":response.data[0].detail, "accuracy": response.data[2].detail, "loss":response.data[1].detail, "model_type":response.data[0].type})
-
             }
         })
         .catch(err => console.log(err))
@@ -93,7 +92,7 @@ export function BasicTable(props) {
                             <div className="results-overlay">
                                 <div className = "results-content">
                                 <div className='results'>
-                                   <p className='title'> {`${status.name}`} </p>
+                                   <p className='title'> {`${status.name??"In Progress"}`} </p>
 
                                    <CopyToClipboard
                                     text="text"
