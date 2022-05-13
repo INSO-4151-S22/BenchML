@@ -130,15 +130,13 @@ class PyTorchOptimizer():
         trainloader = DataLoader(
                 train_subset,
                 batch_size=int(config["batch_size"]),
-                shuffle=True,
-                num_workers=8
+                shuffle=True
             )
 
         valloader = DataLoader(
                 val_subset,
                 batch_size=int(config["batch_size"]),
-                shuffle=True,
-                num_workers=8
+                shuffle=True
             )
 
         for epoch in range(5):  # loop over the dataset multiple times
@@ -222,15 +220,13 @@ class PyTorchOptimizer():
         trainloader = DataLoader(
                 train_subset,
                 batch_size=int(16),
-                shuffle=True,
-                num_workers=8
+                shuffle=True
             )
 
         valloader = DataLoader(
                 val_subset,
                 batch_size=int(16),
-                shuffle=True,
-                num_workers=8
+                shuffle=True
             )
 
         for epoch in range(5):  # loop over the dataset multiple times
