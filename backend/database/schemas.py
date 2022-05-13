@@ -54,7 +54,7 @@ class ModelBase(BaseModel):
 
 
 class ModelCreate(ModelBase):
-    modules: Set[Literal["optimizer"]]
+    modules: Set[Literal["optimizer", "adversarial"]]
 
 
 class Model(ModelBase):

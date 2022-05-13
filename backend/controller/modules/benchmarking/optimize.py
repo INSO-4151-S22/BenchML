@@ -9,15 +9,17 @@ import json
 from controller.modules.benchmarking.keras_optimizer import KerasOptimizer
 from controller.modules.benchmarking.pytorch_optimizer import PyTorchOptimizer
 import ast 
+from ray.tune import CLIReporter
 
 class Optimize:
 
-    def __init__(self, resources = {'cpu': 2, 'gpu' : 0}, model_type = None):
+    def __init__(self, resources = {'cpu': 8, 'gpu' : 1}, model_type = None):
         self.resources = resources
         self.model_type = model_type
-        
+        self.optimizer = self.get_optimizer()
+
     def get_optimizer(self):
-        """Based on the model type in config, create a model for use with ray tune."""
+        """Based on the model type, create an optimizer model."""
         if self.model_type == 'keras':
             return KerasOptimizer()
         elif self.model_type == 'pytorch':
@@ -34,8 +36,8 @@ class Optimize:
             config: A JSON object containing the model arguments.
         '''
 
-        net = self.get_optimizer()  # Create model for that specific optimizer based on self.model_type
-        net.train(config)  # Train the model with the config for this current version
+        net = self.optimizer  # Create model for that specific optimizer based on self.model_type
+        net.train_tune(config)  # Train the model with the config for this current version
         print("Training completed for model")
 
     def run(self, url):
@@ -57,16 +59,16 @@ class Optimize:
                 grace_period=1,
                 reduction_factor=2
             )
-        
+        reporter = CLIReporter(metric_columns=["loss", "accuracy"])
+
         result = tune.run(
             tune.with_parameters(self.train),
             resources_per_trial={"cpu": self.resources['cpu'], "gpu": self.resources['gpu']}, # For Google Colab Environment
             config=config,
-            metric="mean_accuracy",
             mode="max",
-            num_samples=10,
+            num_samples=5,
             scheduler=scheduler,
-            stop={"mean_accuracy": 0.99}
+            progress_reporter=reporter
         )
 
         best_trial = result.get_best_trial("loss", "min", "last")
@@ -110,12 +112,12 @@ class Optimize:
             if k == 'model_type' or k == 'layers':
                 pass
             elif k == 'lr':
-                if parsed_config[k] and len(parsed_config[k]) == 0:
+                if len(parsed_config[k]) == 0:
                     parsed_config[k] = learning_rate
                 else:
                     parsed_config[k] = float(parsed_config[k])
             elif k == 'batch_size':
-                if parsed_config[k] and len(parsed_config[k]) == 0:
+                if len(parsed_config[k]) == 0:
                     parsed_config[k] = batch_size
                 else:
                     parsed_config[k] = int(parsed_config[k])
