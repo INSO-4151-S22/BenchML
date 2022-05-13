@@ -46,7 +46,7 @@ export default function Modal(props) {
                 "name" : inputs.filename,
                 "source" : inputs.repourl,
                 "type" : type,
-                "modules" : ["optimizer"]
+                "modules" : [(type == 'pytorch') ? "adversarial" : "optimizer"]
             },
             { headers: { 'Authorization': `Bearer ${t}`}}
             )

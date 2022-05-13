@@ -32,7 +32,14 @@ export function BasicTable(props) {
         const t = await getAccessTokenSilently();
         axios.get(baseURL+`/models/${results.mid}/details`,{ headers: { 'Authorization': `Bearer ${t}`}})
         .then((response) => {
-            setStatus({"name":results.name, "info":response.data[0].information, "detail":response.data[0].detail, "model_type":response.data[0].type})
+            console.log(response.data)
+            if("adversarial" === response.data[0].type){
+                setStatus({"name":results.name, "original_accuracy":response.data[0].detail, "adversarial_accuracy":response.data[1].detail, "model_type":response.data[0].type})
+            }
+            else{
+                setStatus({"name":results.name, "best_config":response.data[0].detail, "accuracy": response.data[2].detail, "loss":response.data[1].detail, "model_type":response.data[0].type})
+
+            }
         })
         .catch(err => console.log(err))
         
@@ -48,7 +55,7 @@ export function BasicTable(props) {
 
     function parseJson(){
         try {
-          return JSON.stringify(JSON.parse(status.detail.replaceAll("\'", "\"").substring(1, status.detail.length - 1)).layers);
+          return JSON.stringify(status);
         } catch(ex){
           return "";
         }
@@ -87,12 +94,6 @@ export function BasicTable(props) {
                                 <div className = "results-content">
                                 <div className='results'>
                                    <p className='title'> {`${status.name}`} </p>
-                                   
-                                   <p>Loss : </p>
-                                   
-                                   <p>Accuracy: </p>
-
-                                   <p>Best Trial: </p>
 
                                    <CopyToClipboard
                                     text="text"
@@ -103,7 +104,7 @@ export function BasicTable(props) {
                                     id="standard-multiline-flexible"
                                     label="Results"
                                     multiline
-                                    value={val}
+                                    value={parseJson()}
                                     
                                     onChange={handleChange}
                                     variant="standard"
