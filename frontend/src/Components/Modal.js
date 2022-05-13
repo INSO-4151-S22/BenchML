@@ -8,18 +8,24 @@ import { Toaster, toast } from "react-hot-toast";
 
 const baseURL = configJson.baseUrl; 
 
-export default function Modal() {
+export default function Modal(props) {
     // Consts used in modal
     const { getAccessTokenSilently } = useAuth0(); 
     const [modal, setModal] = useState(false);
     const toggleModal = () => {
         setModal(!modal)
+        // reset modal values
+        setType("keras");
+        setInputs({});
     }
     const [inputs, setInputs] = useState({});
     const [type, setType] = useState("keras");
     const notifySuccess = () => toast("Model uploaded succesfully!")
     
 
+    const updateType = (newType) => {
+        setType(newType);
+    }
     const handleChange = (event) => {
         const name = event.target.name;
         const value = event.target.value;
@@ -33,12 +39,11 @@ export default function Modal() {
     };
 
     const postModel = async() => {
-      //  console.log(type);
         const t = await getAccessTokenSilently();
-        console.log(t);
-        console.log(inputs.filename);
-        console.log(inputs.repourl);
-        console.log(type);
+        // console.log(t);
+        // console.log(inputs.filename);
+        // console.log(inputs.repourl);
+        // console.log(type);
 
         const pm = async() => {
             const response = await axios.post(baseURL+"/models",
@@ -82,15 +87,12 @@ export default function Modal() {
         // console.log(inputs);
         event.preventDefault();
         postModel();
+        toggleModal();
+        props.setPosted(true);
+        props.emptyModels(null);
       }
 
     
-
-    if(modal) {
-        document.body.classList.add('active-modal')
-    } else {
-        document.body.classList.remove('active-modal')
-    }
     return (
         <>
         <Toaster/>
@@ -129,7 +131,7 @@ export default function Modal() {
                         onClick={toggleModal}>
                         Cancel
                         </button>
-                        <input type="submit" value="Submit" />
+                        <input type="submit" value="Submit"/>
                     </div>
                     </form>
                     </div>

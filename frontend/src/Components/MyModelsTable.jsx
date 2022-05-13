@@ -14,7 +14,7 @@ export function BasicTable(props) {
 
     
     const columns = useMemo(() => COLUMNS, [])
-    const data = useMemo(() => modelDisplay, []);
+    const data = useMemo(() => modelDisplay, [])
 
     const tableInstance = useTable({
         columns,
