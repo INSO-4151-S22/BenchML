@@ -14,9 +14,8 @@ Enrique Viera
 
 
 ## Project page
-`https://inso-4151-s22.github.io/BenchML/`
+[https://inso-4151-s22.github.io/BenchML/](https://inso-4151-s22.github.io/BenchML/)
 
 
-## Documentation
-- The **documentation/structure.sql** file includes the scripts needed to recreate the database.
-- You might visit **`<url>/docs`** in your browser to test the API online.
+## Final Presentation
+ [Download the final presentation](documentation/page/media/Capstone_Final_Presentation.pdf)
