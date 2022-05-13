@@ -9,6 +9,9 @@
 
 ### Professor: Dr. Wilson Rivera
 
+## Final Presentation
+ [Download the final presentation](documentation/page/media/Capstone_Final_Presentation.pdf)
+
 ## System Architecture
 ![system architecture](documentation/page/media/System_Architecture.png)
 
